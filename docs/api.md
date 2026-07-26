@@ -11,12 +11,80 @@ Public APIs are available from the package root and from focused subpath
 exports:
 
 ```typescript
+import {
+  agent,
+  log,
+  parallel,
+  phase,
+  pipeline,
+  workflow,
+  WorkflowEventEmitter,
+  WorkflowRunner,
+} from "@deer-flow/workflow";
+```
+
+Equivalent focused subpath imports:
+
+```typescript
 import { agent } from "@deer-flow/workflow/agents";
-import { parallel, pipeline, workflow } from "@deer-flow/workflow/flow";
+import { parallel, phase, pipeline, workflow } from "@deer-flow/workflow/flow";
 import { WorkflowEventEmitter } from "@deer-flow/workflow/events";
 import { log } from "@deer-flow/workflow/logging";
 import { WorkflowRunner } from "@deer-flow/workflow/runner";
 ```
+
+## Workflow module contract
+
+A runnable Workflow module uses explicit ESM imports and exports its Handler as
+either `default` or a named `run` export.
+
+### `meta`
+
+A Workflow may describe itself with a static `meta` export:
+
+```typescript
+export const meta = {
+  name: "workflow-name",
+  description: "One-line description.",
+  phases: [{ title: "Plan" }, { title: "Execute" }],
+};
+```
+
+- `name` is a stable, kebab-case identifier.
+- `description` is a one-line summary of the Workflow.
+- `phases` is an ordered list of `{ title }` objects. Its titles should exactly
+  match the Workflow's `phase()` calls.
+
+Keep `meta` statically readable: use only literal values, arrays, and objects.
+Do not use variables, function calls, spreads, computed properties, or template
+literals. `meta` is currently a forward-compatible authoring contract: the
+Runner tolerates the export but does not yet read, validate, or include it in
+events.
+
+### Handler arguments
+
+```typescript
+type WorkflowHandler<TArgs, TOutput> = (
+  args: TArgs,
+  context: Readonly<WorkflowExecutionContext<TArgs>>,
+) => TOutput | PromiseLike<TOutput>;
+```
+
+`args` is the caller-provided input and should be the first Handler parameter.
+It is not a JavaScript global such as `globalThis.args`. When the CLI does not
+provide input, its value is `undefined`.
+
+The second parameter, `context`, exposes the current execution context,
+including the Runner, lifecycle, phase, event, and logging facilities. A
+Workflow does not need to declare this parameter when it does not use it.
+
+### Runtime context and imports
+
+Workflow APIs are imported explicitly from `@deer-flow/workflow`. The CLI does
+not inject `agent`, `parallel`, `pipeline`, `phase`, `workflow`, or `log` as
+globals. The Runner establishes the asynchronous execution context before
+calling the Handler, allowing those imported APIs to access the active Workflow
+lifecycle safely.
 
 ## Agents
 
@@ -70,7 +138,16 @@ interface AgentOptions {
 ```
 
 The schema constrains only the final response. It does not reduce the Agent
-Loop to a single model completion.
+Loop to a single model completion. A failed direct call rejects its Promise;
+`agent()` does not convert failures to `null`.
+
+### `defaultAgent`
+
+```typescript
+const defaultAgent: CodexAgent;
+```
+
+The shared `CodexAgent` instance used by the exported `agent()` function.
 
 ### `Agent`
 
@@ -139,6 +216,9 @@ Starts all lazy tasks concurrently and waits for them to settle. Results retain
 input order. A rejected or synchronously thrown task becomes `null` without
 cancelling its siblings.
 
+The current implementation starts every supplied task immediately and does not
+document a concurrency or item-count limit.
+
 ```typescript
 const [lint, typecheck, tests] = await parallel([
   () => runLint(),
@@ -178,6 +258,7 @@ type PipelineStage<TValue, TOriginal, TNext> = (
 ) => TNext | PromiseLike<TNext>;
 ```
 
+For the first stage, `value` is the original item rather than `undefined`.
 When one item fails, its remaining stages are skipped and its final value is
 `null`. Other items continue. Type inference is preserved for up to five
 stages.
@@ -191,7 +272,8 @@ function phase(title: string): void;
 Sets the active Workflow phase. A transition emits
 `workflow:phase:end` for the previous phase followed by
 `workflow:phase:start` for the new phase. Calling it outside a Workflow throws
-`PhaseContextError`.
+`PhaseContextError`. Set phases before entering `parallel()` or `pipeline()`;
+changing the shared phase from concurrent branches is race-prone.
 
 ### `getCurrentPhase()`
 
@@ -224,7 +306,8 @@ type WorkflowHandler<TArgs, TOutput> = (
 A host-started Workflow has depth `0`. Nested paths resolve relative to the
 parent Workflow file, and one nested level is currently supported. Invalid
 modules throw `WorkflowLoadError`; exceeding the nesting limit throws
-`WorkflowNestingError`.
+`WorkflowNestingError`. When the caller supplies no input, the handler's
+`args` value is `undefined`.
 
 ### `getWorkflowContext()`
 
@@ -360,7 +443,32 @@ and an optional `stack`.
 
 ## Runner
 
-### CLI `run`
+### CLI
+
+Run a one-off task through the default Codex-backed Agent:
+
+```text
+deer-workflow agent "Inspect this repository"
+echo "Inspect this repository" | deer-workflow agent
+```
+
+The final Agent response uses stdout. Usage and Agent errors use stderr and
+produce a non-zero exit status.
+
+Generate a Workflow through the bundled Workflow Creator Skill:
+
+```text
+deer-workflow create "Describe the Workflow"
+echo "Describe the Workflow" | deer-workflow create
+```
+
+`create` resolves the bundled Skill from the installed package, asks Codex to
+read it and its required references, then appends the user's prompt. Codex runs
+with a read-only sandbox and may run outside a Git repository. One enclosing
+Markdown source fence is removed, so stdout can be redirected directly to a
+`.ts` or `.js` file. The generated Workflow is not executed.
+
+Run a Workflow module:
 
 ```text
 deer-workflow run <workflow>
@@ -369,9 +477,14 @@ deer-workflow run <workflow> --input-file <path>
 echo '<json>' | deer-workflow run <workflow>
 ```
 
-The CLI constructs a `WorkflowRunner`, parses JSON input, and exits with a
-non-zero status when loading or execution fails. It writes the final result to
-stdout and JSONL events to stderr.
+`run` rejects simultaneous `--input` and `--input-file`. It resolves input from
+`--input`, then `--input-file`, then non-empty stdin; an explicit option takes
+precedence over stdin. Invalid JSON, loading failures, and execution failures
+produce a non-zero exit status.
+
+The CLI constructs a `WorkflowRunner` and writes JSONL events to stderr. A
+string result is written directly to stdout, another JSON-serializable value
+is written as compact JSON, and `undefined` produces no result line.
 
 ### `WorkflowRunner`
 
@@ -392,9 +505,10 @@ class WorkflowRunner {
 ```
 
 Runs Workflows and exposes lifecycle, phase, and log events through one stream.
-By default, each event is written to stdout as one JSON line. A Runner can be
-reused and can execute Workflows concurrently; its async contexts remain
-isolated while all events share one increasing sequence.
+A standalone Runner writes each event to stdout as one JSON line by default.
+The CLI supplies a stderr writer instead. A Runner can be reused and can
+execute Workflows concurrently; its async contexts remain isolated while all
+events share one increasing sequence.
 
 ```typescript
 interface WorkflowRunnerOptions {
@@ -409,7 +523,7 @@ executions.
 
 ## Examples
 
-- [Deep Research](../src/examples/deep-research/README.md) combines `agent()`,
+- [Deep Research](../examples/deep-research/README.md) combines `agent()`,
   `phase()`, `parallel()`, `log()`, and `WorkflowRunner`.
-- [Blog Writer](../src/examples/blog-writer/README.md) combines `agent()`,
+- [Blog Writer](../examples/blog-writer/README.md) combines `agent()`,
   `phase()`, `pipeline()`, `log()`, and `WorkflowRunner`.

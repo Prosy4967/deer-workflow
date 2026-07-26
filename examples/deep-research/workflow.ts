@@ -9,15 +9,25 @@ import type {
 } from "./types";
 
 /**
+ * Declares the Workflow's identity and observable phase plan.
+ */
+export const meta = {
+  name: "deep-research",
+  description:
+    "Researches independent angles and synthesizes a sourced report.",
+  phases: [{ title: "Plan" }, { title: "Research" }, { title: "Synthesis" }],
+};
+
+/**
  * Demonstrates a plan, parallel research, and synthesis Workflow.
  *
- * @param input - Research question and optional additional angles.
+ * @param args - Research question and optional additional angles.
  * @returns A structured report with findings, sources, and limitations.
  */
 export default async function deepResearch(
-  input: DeepResearchInput,
+  args: DeepResearchInput,
 ): Promise<DeepResearchReport> {
-  const question = input.question.trim();
+  const question = args.question.trim();
   if (!question) {
     throw new TypeError("Deep Research requires a non-empty question.");
   }
@@ -49,7 +59,7 @@ export default async function deepResearch(
     },
   );
 
-  const angles = [...new Set([...plan.angles, ...(input.angles ?? [])])];
+  const angles = [...new Set([...plan.angles, ...(args.angles ?? [])])];
 
   phase("Research");
   log(`Researching ${angles.length} angles in parallel`);

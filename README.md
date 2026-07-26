@@ -17,14 +17,17 @@ An open-source Dynamic Workflow runtime that combines deterministic TypeScript
 orchestration with replaceable Agent runtimes.
 
 `deer-workflow` is a pilot project for **DeerFlow 3.0**, also known as
-**DeerWork**. The package is published as `@deer-flow/workflow`; the executable
-is named `deer-workflow`.
+**DeerWork**. The package name is `@deer-flow/workflow`; the executable is
+named `deer-workflow`.
 
 ## Index
 
 - [How to use](#how-to-use)
   - [Prerequisites](#prerequisites)
-  - [Try from source](#try-from-source)
+  - [Install the CLI](#install-the-cli)
+  - [Run an Agent](#run-an-agent)
+  - [Create a Workflow](#create-a-workflow)
+  - [Run a Workflow](#run-a-workflow)
   - [Examples](#examples)
 - [How to develop](#how-to-develop)
   - [Development documentation](#development-documentation)
@@ -48,23 +51,43 @@ codex --version
 Codex CLI and Codex Desktop are separate installations. Installing the Desktop
 app does not install the `codex` terminal command.
 
-## Try from source
+## Install the CLI
 
-Install this repository:
-
-```bash
-bun install
-```
-
-Run a Workflow with inline JSON input:
+Until the first npm release, install the current CLI directly from GitHub:
 
 ```bash
-bun run dev -- run ./src/examples/deep-research/workflow.ts \
-  --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?"}'
+bun install --global git+https://github.com/deer-flow/deer-workflow.git
+deer-workflow --help
 ```
 
-After installing the package globally, use the same command through the
-executable:
+After `@deer-flow/workflow` is published to npm, install a released version
+with:
+
+```bash
+bun install --global @deer-flow/workflow
+```
+
+Running `bun install` without `--global` only installs dependencies for the
+current project. It does not install the `deer-workflow` command globally.
+
+## Run an Agent
+
+```bash
+deer-workflow agent "Inspect this repository"
+```
+
+## Create a Workflow
+
+Describe the orchestration you need. The command runs the bundled
+`workflow-creator` Skill through Codex and writes generated source to stdout:
+
+```bash
+deer-workflow create \
+  "Research several independent angles, verify the findings, and synthesize a report" \
+  > workflow.ts
+```
+
+## Run a Workflow
 
 ```bash
 deer-workflow run ./workflow.ts --input '{"question":"Your question"}'
@@ -72,22 +95,22 @@ deer-workflow run ./workflow.ts --input '{"question":"Your question"}'
 
 ## Examples
 
-Run [Deep Research](./src/examples/deep-research/README.md):
+Run [Deep Research](./examples/deep-research/README.md):
 
 ```bash
-bun run dev -- run ./src/examples/deep-research/workflow.ts \
+deer-workflow run ./examples/deep-research/workflow.ts \
   --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?"}'
 ```
 
-Run [Blog Writer](./src/examples/blog-writer/README.md):
+Run [Blog Writer](./examples/blog-writer/README.md):
 
 ```bash
-bun run dev -- run ./src/examples/blog-writer/workflow.ts \
+deer-workflow run ./examples/blog-writer/workflow.ts \
   --input '{"topic":"Dynamic Workflow","audience":"Agent builders"}'
 ```
 
-After installing the package globally, replace `bun run dev --` with
-`deer-workflow`.
+These paths refer to files in this repository. Clone or download the repository
+before running them.
 
 # How to develop
 
@@ -95,6 +118,7 @@ After installing the package globally, replace `bun run dev --` with
 
 - [Getting Started](./docs/index.md)
 - [API Reference](./docs/api.md)
+- [Workflow Creator Skill](./skills/workflow-creator/SKILL.md)
 - [中文开发文档](./docs/index.zh-CN.md)
 
 The API Reference covers Agents, Flow Controls, Workflow Events, Logging,
@@ -102,10 +126,18 @@ Runner behavior, JSON Schema output, and programmatic usage.
 
 ## Set up
 
-Install dependencies and repository-managed Git hooks:
+Clone the repository, then install its local dependencies and Git hooks:
 
 ```bash
+git clone https://github.com/deer-flow/deer-workflow.git
+cd deer-workflow
 bun install
+```
+
+Run the CLI directly from source while developing:
+
+```bash
+bun run dev -- --help
 ```
 
 ## Validate changes

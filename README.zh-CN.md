@@ -16,14 +16,17 @@
 一个开源的 Dynamic Workflow Runtime：用确定性的 TypeScript 编排组织可替换的
 Agent Runtime。
 
-`deer-workflow` 是 **DeerFlow 3.0**（即 **DeerWork**）的试点项目。发布包名为
+`deer-workflow` 是 **DeerFlow 3.0**（即 **DeerWork**）的试点项目。包名为
 `@deer-flow/workflow`，命令行名称为 `deer-workflow`。
 
 ## 目录
 
 - [如何使用](#如何使用)
   - [前置条件](#前置条件)
-  - [从源码试用](#从源码试用)
+  - [安装命令行](#安装命令行)
+  - [运行 Agent](#运行-agent)
+  - [创建 Workflow](#创建-workflow)
+  - [运行 Workflow](#运行-workflow)
   - [示例](#示例)
 - [如何开发](#如何开发)
   - [开发文档](#开发文档)
@@ -47,22 +50,42 @@ codex --version
 Codex CLI 与 Codex Desktop 是两个独立安装。安装 Desktop 应用不会同时安装
 终端中的 `codex` 命令。
 
-## 从源码试用
+## 安装命令行
 
-安装仓库依赖：
-
-```bash
-bun install
-```
-
-通过内联 JSON Input 运行一个 Workflow：
+在首个 npm 版本发布前，直接从 GitHub 全局安装当前版本：
 
 ```bash
-bun run dev -- run ./src/examples/deep-research/workflow.ts \
-  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
+bun install --global git+https://github.com/deer-flow/deer-workflow.git
+deer-workflow --help
 ```
 
-全局安装包之后，可以直接使用命令行：
+`@deer-flow/workflow` 发布到 npm 后，可用下面的命令安装正式版本：
+
+```bash
+bun install --global @deer-flow/workflow
+```
+
+不带 `--global` 的 `bun install` 只会安装当前项目的本地依赖，不会在全局安装
+`deer-workflow` 命令。
+
+## 运行 Agent
+
+```bash
+deer-workflow agent "Inspect this repository"
+```
+
+## 创建 Workflow
+
+描述需要的编排逻辑。该命令会让 Codex 执行内置的 `workflow-creator` Skill，并
+将生成的源码写入 stdout：
+
+```bash
+deer-workflow create \
+  "并行研究多个独立角度，验证研究结果，最后汇编成报告" \
+  > workflow.ts
+```
+
+## 运行 Workflow
 
 ```bash
 deer-workflow run ./workflow.ts --input '{"question":"你的问题"}'
@@ -70,21 +93,21 @@ deer-workflow run ./workflow.ts --input '{"question":"你的问题"}'
 
 ## 示例
 
-运行 [Deep Research](./src/examples/deep-research/README.zh-CN.md)：
+运行 [Deep Research](./examples/deep-research/README.zh-CN.md)：
 
 ```bash
-bun run dev -- run ./src/examples/deep-research/workflow.ts \
+deer-workflow run ./examples/deep-research/workflow.ts \
   --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
 ```
 
-运行 [Blog Writer](./src/examples/blog-writer/README.zh-CN.md)：
+运行 [Blog Writer](./examples/blog-writer/README.zh-CN.md)：
 
 ```bash
-bun run dev -- run ./src/examples/blog-writer/workflow.ts \
+deer-workflow run ./examples/blog-writer/workflow.ts \
   --input '{"topic":"Dynamic Workflow","audience":"Agent Builder"}'
 ```
 
-全局安装包后，将命令开头的 `bun run dev --` 替换为 `deer-workflow` 即可。
+这些路径指向本仓库内的文件，请先克隆或下载仓库再运行。
 
 # 如何开发
 
@@ -92,6 +115,7 @@ bun run dev -- run ./src/examples/blog-writer/workflow.ts \
 
 - [快速入门](./docs/index.zh-CN.md)
 - [API 参考](./docs/api.zh-CN.md)
+- [Workflow Creator Skill](./skills/workflow-creator/SKILL.md)
 - [English Documentation](./docs/index.md)
 
 Agents、Flow Controls、Workflow Events、Logging、Runner 行为、JSON Schema
@@ -99,10 +123,18 @@ Agents、Flow Controls、Workflow Events、Logging、Runner 行为、JSON Schema
 
 ## 初始化开发环境
 
-安装依赖和仓库管理的 Git Hooks：
+克隆仓库，然后安装本地依赖和仓库管理的 Git Hooks：
 
 ```bash
+git clone https://github.com/deer-flow/deer-workflow.git
+cd deer-workflow
 bun install
+```
+
+开发时直接从源码运行 CLI：
+
+```bash
+bun run dev -- --help
 ```
 
 ## 验证修改

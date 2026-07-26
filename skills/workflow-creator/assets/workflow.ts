@@ -1,5 +1,12 @@
 import { agent, log, parallel, phase } from "@deer-flow/workflow";
 
+export const meta = {
+  name: "planned-workflow",
+  description:
+    "Plans independent tasks, executes them, and synthesizes results.",
+  phases: [{ title: "Plan" }, { title: "Execute" }, { title: "Synthesize" }],
+};
+
 interface WorkflowInput {
   objective: string;
 }
@@ -23,19 +30,19 @@ const planSchema = {
   },
   required: ["tasks"],
   additionalProperties: false,
-} as const;
+};
 
 /**
  * Replace this template's prompts, input, and output with the user's domain.
  */
 export default async function run(
-  input: WorkflowInput,
+  args: WorkflowInput,
 ): Promise<WorkflowOutput> {
   phase("Plan");
   log("Planning independent tasks");
 
   const plan = await agent<Plan>(
-    `Break this objective into independent tasks:\n${input.objective}`,
+    `Break this objective into independent tasks:\n${args.objective}`,
     {
       sandbox: "read-only",
       schema: planSchema,
@@ -62,7 +69,7 @@ export default async function run(
 
   const summary = await agent(
     [
-      `Original objective: ${input.objective}`,
+      `Original objective: ${args.objective}`,
       "Synthesize the completed task results into one concise answer.",
       `Results: ${JSON.stringify(results)}`,
     ].join("\n\n"),

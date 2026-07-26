@@ -13,6 +13,7 @@ functions into its global scope.
 
 Infer these decisions from the request and existing repository context:
 
+- A kebab-case Workflow name and one-line description.
 - The input object accepted by the Workflow.
 - The final value returned to the caller.
 - The phases visible in lifecycle events.
@@ -37,8 +38,10 @@ changes, or nested Workflows.
 The essential runtime model is:
 
 - Import APIs explicitly from `@deer-flow/workflow`.
+- Export a pure-literal `meta` object containing `name`, `description`, and
+  `phases`.
 - Export an `async` handler as `default` or as named `run`.
-- Receive caller input as the handler's first argument.
+- Receive caller input as the handler's first argument, named `args`.
 - Optionally receive the Workflow execution context as the second argument.
 - Let `WorkflowRunner` provide lifecycle, phase, event, and logging context
   through async-local state.
@@ -49,8 +52,39 @@ Do not generate the older destructured-injection signature:
 export default async function ({ agent, parallel, args }) {}
 ```
 
-Do not generate `meta`, `budget`, `label`, `phase`, or `isolation` features that
-the runtime does not implement.
+`args` is not a JavaScript global. It is the first Handler parameter. Naming it
+`args` preserves the Dynamic Workflow vocabulary without pretending the
+current runtime mutates `globalThis`.
+
+Do not generate an unsupported `budget` contract or unsupported `AgentOptions`
+fields such as `label`, `phase`, or `isolation`. The standalone `phase()` Flow
+API is implemented and should be imported when phases are useful.
+
+## Define metadata
+
+Place `meta` immediately after imports and before local types or executable
+code:
+
+```ts
+export const meta = {
+  name: "deep-research",
+  description: "Researches independent angles and synthesizes a report.",
+  phases: [{ title: "Plan" }, { title: "Research" }, { title: "Synthesize" }],
+};
+```
+
+Keep it statically readable:
+
+- Use a kebab-case string literal for `name`.
+- Use a concise string literal for `description`.
+- List every observable phase as `{ title: "..." }`.
+- Make phase titles exactly match calls to `phase()`, including case.
+- Use only object, array, string, number, boolean, and `null` literals.
+- Do not use variables, calls, spreads, computed keys, or template literals.
+
+The current Runner safely ignores unknown module exports and does not yet
+surface `meta` in events. The Creator still emits this forward-compatible
+contract so generated Workflows already carry identity and planned phases.
 
 ## Design the Workflow
 
@@ -131,6 +165,12 @@ import {
   workflow,
 } from "@deer-flow/workflow";
 
+export const meta = {
+  name: "workflow-name",
+  description: "One-line description of the Workflow.",
+  phases: [{ title: "Plan" }, { title: "Execute" }],
+};
+
 interface WorkflowInput {
   // Input fields
 }
@@ -140,7 +180,7 @@ interface WorkflowOutput {
 }
 
 export default async function run(
-  input: WorkflowInput,
+  args: WorkflowInput,
 ): Promise<WorkflowOutput> {
   // Orchestration
 }
@@ -149,22 +189,25 @@ export default async function run(
 Import only the APIs actually used. Keep local types near the module unless the
 repository's conventions require a sibling `types.ts`.
 
-The handler's returned value is the CLI result written to stdout. Logs and
-lifecycle events belong on stderr through `WorkflowRunner`; do not mix progress
-text into the final result.
+The handler's returned value is the CLI result written to stdout. The CLI
+configures `WorkflowRunner` to write logs and lifecycle events to stderr; a
+standalone Runner defaults to `console.log`. Do not mix progress text into the
+final result.
 
 ## Validate
 
 Before handing off a generated file:
 
 1. Confirm every imported API exists in [references/api.md](references/api.md).
-2. Confirm the handler is exported as `default` or named `run`.
-3. Confirm the handler reads input directly rather than from a fictional
-   injected `args`.
-4. Confirm every `parallel()` entry is a zero-argument function.
-5. Confirm the first `pipeline()` stage receives the original item.
-6. Confirm nullable concurrent results are handled.
-7. Confirm structured Agent results have both a schema and a matching type.
-8. Confirm `phase()` is not called inside concurrent branches.
-9. Confirm the sandbox and working directory match the task.
-10. If working in this repository, run `bun run check`.
+2. Confirm `meta` is a pure literal with `name`, `description`, and `phases`.
+3. Confirm every `meta.phases[].title` exactly matches a `phase()` call.
+4. Confirm the handler is exported as `default` or named `run`.
+5. Confirm caller input is received through the first Handler parameter named
+   `args`, not read from a fictional JavaScript global.
+6. Confirm every `parallel()` entry is a zero-argument function.
+7. Confirm the first `pipeline()` stage receives the original item.
+8. Confirm nullable concurrent results are handled.
+9. Confirm structured Agent results have both a schema and a matching type.
+10. Confirm `phase()` is not called inside concurrent branches.
+11. Confirm the sandbox and working directory match the task.
+12. If working in this repository, run `bun run check`.

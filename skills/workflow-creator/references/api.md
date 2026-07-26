@@ -14,16 +14,41 @@ type WorkflowHandler<TArgs, TOutput> = (
 ) => TOutput | PromiseLike<TOutput>;
 ```
 
+The Workflow Creator also emits a pure-literal metadata export:
+
+```ts
+export const meta = {
+  name: "workflow-name",
+  description: "One-line description.",
+  phases: [{ title: "Plan" }, { title: "Execute" }],
+};
+```
+
+The current runtime tolerates this export but does not yet read it or include
+it in events. Keep the object literal static for forward compatibility.
+
 The CLI loads it with:
 
 ```sh
 deer-workflow run ./workflow.ts --input '{"key":"value"}'
 ```
 
-Input may instead come from `--input-file` or JSON on stdin. The final returned
-value is written to stdout. Workflow events and logs are JSON Lines on stderr.
+Input may instead come from `--input-file` or JSON on stdin. `--input` and
+`--input-file` cannot be combined; explicit input takes precedence over stdin.
+The final returned value is written to stdout. Workflow events and logs are
+JSON Lines on stderr.
 
-There is currently no `meta` export contract and no global API injection.
+There is no global API injection. Caller input is the Handler's first
+parameter, conventionally named `args`; it is not a `globalThis` property.
+
+The CLI can ask the default Codex Agent to apply this bundled Skill and emit a
+new module as raw source:
+
+```sh
+deer-workflow create "Describe the Workflow" > workflow.ts
+```
+
+`create` generates the module but does not execute it.
 
 ## Imports
 
@@ -67,8 +92,9 @@ interface AgentOptions {
 }
 ```
 
-There are no `label`, `phase`, `isolation`, retry, or token-budget options.
-Direct failures throw rather than returning `null`.
+There are no `label`, `phase`, `isolation`, retry, or token-budget fields in
+`AgentOptions`. `phase()` is a separate Flow API. Direct Agent failures throw
+rather than returning `null`.
 
 ## `parallel()`
 
@@ -134,7 +160,9 @@ function log(message: string): void;
 ```
 
 Inside a `WorkflowRunner`, `log()` emits a typed `log` event. Its phase is read
-from the active Workflow context. Outside a Runner it writes to stderr.
+from the active Workflow context. Outside a Runner it writes to stderr. A
+standalone Runner writes JSON events through `console.log` by default; the CLI
+overrides its writer so events go to stderr.
 
 ## `workflow()`
 

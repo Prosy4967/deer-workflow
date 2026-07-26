@@ -8,10 +8,10 @@
 大纲 → Pipeline（起草 → 审校）→ 汇编
 ```
 
-通过 CLI 运行：
+安装 CLI 后，在仓库根目录运行：
 
 ```bash
-deer-workflow run ./src/examples/blog-writer/workflow.ts \
+deer-workflow run ./examples/blog-writer/workflow.ts \
   --input '{"topic":"为什么 Dynamic Workflow 可以与 Agent Skills 共生","audience":"Agent Builder"}'
 ```
 
@@ -23,7 +23,7 @@ import { WorkflowRunner } from "@deer-flow/workflow/runner";
 const runner = new WorkflowRunner();
 
 try {
-  const article = await runner.run("./src/examples/blog-writer/workflow.ts", {
+  const article = await runner.run("./examples/blog-writer/workflow.ts", {
     topic: "为什么 Dynamic Workflow 可以与 Agent Skills 共生",
     audience: "Agent Builder",
     tone: "有观点且务实",

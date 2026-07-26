@@ -10,22 +10,35 @@ import type {
 } from "./types";
 
 /**
+ * Declares the Workflow's identity and observable phase plan.
+ */
+export const meta = {
+  name: "blog-writer",
+  description: "Outlines, drafts, reviews, and assembles a technical article.",
+  phases: [
+    { title: "Outline" },
+    { title: "Draft and review" },
+    { title: "Assembly" },
+  ],
+};
+
+/**
  * Demonstrates outline, draft, editorial review, and assembly stages.
  *
- * @param input - Topic, audience, tone, and optional keywords.
+ * @param args - Topic, audience, tone, and optional keywords.
  * @returns A complete Markdown article.
  */
 export default async function blogWriter(
-  input: BlogWriterInput,
+  args: BlogWriterInput,
 ): Promise<BlogArticle> {
-  const topic = input.topic.trim();
-  const audience = input.audience.trim();
+  const topic = args.topic.trim();
+  const audience = args.audience.trim();
   if (!topic || !audience) {
     throw new TypeError("Blog Writer requires a topic and audience.");
   }
 
-  const tone = input.tone?.trim() || "clear, practical, and direct";
-  const keywords = input.keywords?.join(", ") || "none";
+  const tone = args.tone?.trim() || "clear, practical, and direct";
+  const keywords = args.keywords?.join(", ") || "none";
 
   phase("Outline");
   log("Creating the editorial structure");

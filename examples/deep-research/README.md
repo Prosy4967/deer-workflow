@@ -9,10 +9,10 @@ orchestration:
 Plan → Parallel Research → Synthesis
 ```
 
-Run it from the CLI:
+After installing the CLI, run it from the repository root:
 
 ```bash
-deer-workflow run ./src/examples/deep-research/workflow.ts \
+deer-workflow run ./examples/deep-research/workflow.ts \
   --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?"}'
 ```
 
@@ -24,7 +24,7 @@ import { WorkflowRunner } from "@deer-flow/workflow/runner";
 const runner = new WorkflowRunner();
 
 try {
-  const report = await runner.run("./src/examples/deep-research/workflow.ts", {
+  const report = await runner.run("./examples/deep-research/workflow.ts", {
     question: "How are Agent Skills and Dynamic Workflows evolving?",
   });
 } finally {

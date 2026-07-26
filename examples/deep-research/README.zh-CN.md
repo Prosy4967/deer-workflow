@@ -8,10 +8,10 @@
 规划 → 并行研究 → 汇编
 ```
 
-通过 CLI 运行：
+安装 CLI 后，在仓库根目录运行：
 
 ```bash
-deer-workflow run ./src/examples/deep-research/workflow.ts \
+deer-workflow run ./examples/deep-research/workflow.ts \
   --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
 ```
 
@@ -23,7 +23,7 @@ import { WorkflowRunner } from "@deer-flow/workflow/runner";
 const runner = new WorkflowRunner();
 
 try {
-  const report = await runner.run("./src/examples/deep-research/workflow.ts", {
+  const report = await runner.run("./examples/deep-research/workflow.ts", {
     question: "Agent Skills 与 Dynamic Workflows 正在如何演进？",
   });
 } finally {

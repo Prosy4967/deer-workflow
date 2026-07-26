@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 
 import { agent, CodexAgentError } from "./agents";
+import { runCreateCommand } from "./cli/create";
 import { CliUsageError } from "./cli/errors";
 import { runWorkflowCommand } from "./cli/run";
 
@@ -11,6 +12,8 @@ try {
     printUsage();
   } else if (command === "agent") {
     await runAgentCommand(values);
+  } else if (command === "create") {
+    await runCreateCommand(values);
   } else if (command === "run") {
     await runWorkflowCommand(values);
   } else if (command === undefined) {
@@ -55,12 +58,15 @@ function printUsage(): void {
 Usage:
   deer-workflow agent "Your task"
   echo "Your task" | deer-workflow agent
+  deer-workflow create "Describe the Workflow"
+  echo "Describe the Workflow" | deer-workflow create
   deer-workflow run <workflow> [--input '<json>']
   deer-workflow run <workflow> [--input-file <path>]
   echo '<json>' | deer-workflow run <workflow>
 
 Commands:
-  agent  Run a task through the default Coding Agent
-  run    Execute a Workflow module
+  agent   Run a task through the default Coding Agent
+  create  Generate a Workflow with the bundled workflow-creator Skill
+  run     Execute a Workflow module
 `);
 }

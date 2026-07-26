@@ -12,15 +12,31 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Use strict TypeScript.
 - Publish the package as `@deer-flow/workflow` while keeping the CLI command
   named `deer-workflow`.
-- Keep `deer-workflow run` as the Workflow execution command. Reserve
-  `deer-workflow create` for future scaffolding work.
+- Until the first npm release, document
+  `bun install --global git+https://github.com/deer-flow/deer-workflow.git` as
+  the working global CLI installation. After publication, document
+  `bun install --global @deer-flow/workflow` as the released-package path.
+- Never describe bare `bun install` as a global installation; in this
+  repository it installs local development dependencies and Git hooks.
+- Keep `deer-workflow run` as the Workflow execution command.
+- Keep `deer-workflow create` as the Agent-backed generator. It accepts a user
+  prompt from arguments or stdin, explicitly directs Codex to the bundled
+  `skills/workflow-creator/SKILL.md`, appends the user prompt, and writes only
+  generated source to stdout.
+- Resolve the bundled Skill relative to the installed CLI module so `create`
+  works from a global GitHub or npm installation. Do not depend on the caller
+  having installed `workflow-creator` in a Codex Skill search directory.
+- Run the create Agent with a read-only sandbox and allow execution outside a
+  Git repository. Strip one enclosing Markdown source fence before writing
+  stdout so shell redirection produces a runnable source file.
 - Route CLI Workflow events to stderr as JSON Lines and the final result to
   stdout.
-- Accept optional run input from at most one of `--input`, `--input-file`, or
-  stdin.
+- Resolve optional run input in this order: `--input`, `--input-file`, then
+  non-empty stdin. Reject simultaneous `--input` and `--input-file`; explicit
+  options take precedence over stdin.
 - Use the `tsconfig.json` path aliases to exercise public
   `@deer-flow/workflow/*` imports locally.
-- Keep runnable examples under `src/examples/<example-name>/`, with types in
+- Keep runnable examples under `examples/<example-name>/`, with types in
   `types.ts`, the Workflow entry point in `workflow.ts`, and reciprocal English
   and Simplified Chinese README files.
 - Link relevant examples from both language variants of the root README,
@@ -43,12 +59,23 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Keep Event implementations in `src/events/` and tests in `tests/events/`.
 - Keep all Runner type aliases and interfaces in `src/runner/types.ts`.
 - Keep Runner implementations in `src/runner/` and tests in `tests/runner/`.
-- Write default logs to stderr so machine-readable stdout remains clean.
-- Emit Runner output as JSON Lines. Its default `logWriter` calls `console.log`
-  once per event so each JSON object occupies one stdout line.
+- Write `log()` messages directly to stderr when no Log Sink is active.
+- Emit Runner events as JSON Lines. A standalone Runner's default `logWriter`
+  calls `console.log` once per event, while the CLI supplies a writer that uses
+  stderr so stdout remains reserved for the final result.
 - Keep Workflow arguments and results out of events by default. Event payloads
   must remain JSON-safe and suitable for external process boundaries.
 - Workflow modules export a handler as either `default` or `run`.
+- Workflow Creator output also exports a pure-literal `meta` object with a
+  kebab-case `name`, one-line `description`, and `phases` whose titles exactly
+  match `phase()` calls. The current Runner ignores this export; do not claim
+  metadata is emitted or consumed until runtime support is implemented.
+- Name the Handler's first caller-input parameter `args`. It is an ordinary
+  function parameter, not a JavaScript global.
+- Workflow modules import APIs explicitly from `@deer-flow/workflow` or its
+  subpaths. The Runner injects async-local lifecycle, phase, event, and logging
+  context; it does not install API functions on `globalThis` or pass them as a
+  destructured handler argument.
 - Resolve nested Workflow paths relative to their parent module.
 - Keep Workflow nesting limited to one level unless the public contract changes.
 
@@ -63,6 +90,7 @@ bun run typecheck
 bun test
 bun run check
 bun run dev -- agent "Inspect this repository"
+bun run dev -- create "Create a research Workflow"
 ```
 
 Run `bun run check` before handing off a change.
@@ -133,8 +161,11 @@ and the corresponding table in both language variants of `docs/index.md`.
 - Keep both root README files focused on project positioning, CLI trial
   commands, examples, and documentation links. Put API and runtime details in
   `docs/api.md` and `docs/api.zh-CN.md`.
-- Organize each root README into two primary reader paths: how to use the CLI
-  and how to develop or contribute to the repository.
+- Organize each root README into two level-one reader paths: how to use the CLI
+  and how to develop or contribute to the repository. Keep a two-level index
+  that links each path and its level-two sections.
+- Keep `skills/workflow-creator/references/api.md` synchronized with the public
+  runtime contract whenever an API or CLI behavior changes.
 - Add `Co-authored-by: Codex <codex@openai.com>` to commits containing changes
   materially authored with Codex, unless the user requests otherwise.
 - Document every public API with TypeDoc comments, including parameters,

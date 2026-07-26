@@ -10,12 +10,76 @@
 所有公开 API 都可以从包根路径导入，也可以使用对应的子路径：
 
 ```typescript
+import {
+  agent,
+  log,
+  parallel,
+  phase,
+  pipeline,
+  workflow,
+  WorkflowEventEmitter,
+  WorkflowRunner,
+} from "@deer-flow/workflow";
+```
+
+也可以使用等价的子路径：
+
+```typescript
 import { agent } from "@deer-flow/workflow/agents";
-import { parallel, pipeline, workflow } from "@deer-flow/workflow/flow";
+import { parallel, phase, pipeline, workflow } from "@deer-flow/workflow/flow";
 import { WorkflowEventEmitter } from "@deer-flow/workflow/events";
 import { log } from "@deer-flow/workflow/logging";
 import { WorkflowRunner } from "@deer-flow/workflow/runner";
 ```
+
+## Workflow 模块契约
+
+一个可运行的 Workflow 模块使用显式 ESM import，并通过 `default` 或具名的
+`run` 导出 Handler。
+
+### `meta`
+
+Workflow 可以通过静态的 `meta` 导出描述自身：
+
+```typescript
+export const meta = {
+  name: "workflow-name",
+  description: "One-line description.",
+  phases: [{ title: "Plan" }, { title: "Execute" }],
+};
+```
+
+- `name` 是稳定的 kebab-case 标识符。
+- `description` 是一行 Workflow 简介。
+- `phases` 是按执行顺序排列的 `{ title }` 列表，其标题应与 Workflow 中的
+  `phase()` 调用完全一致。
+
+`meta` 必须能被静态读取：只使用字面量、数组和对象，不要使用变量、函数调用、
+spread、计算属性或模板字符串。`meta` 目前是面向未来的编写契约：Runner 允许
+存在该导出，但尚不会读取、校验它，也不会将其写入事件。
+
+### Handler 参数
+
+```typescript
+type WorkflowHandler<TArgs, TOutput> = (
+  args: TArgs,
+  context: Readonly<WorkflowExecutionContext<TArgs>>,
+) => TOutput | PromiseLike<TOutput>;
+```
+
+`args` 是调用方传入的数据，应作为 Handler 的第一个参数。它不是
+`globalThis.args` 之类的 JavaScript 全局变量。CLI 未提供输入时，其值为
+`undefined`。
+
+第二个参数 `context` 是当前执行上下文，其中包含 Runner、生命周期、Phase、事件
+与日志能力。Workflow 不使用这些信息时，无须声明该参数。
+
+### Runtime 上下文与 Imports
+
+Workflow API 需要从 `@deer-flow/workflow` 显式导入。CLI 不会把 `agent`、
+`parallel`、`pipeline`、`phase`、`workflow` 或 `log` 注入为全局变量。Runner
+会在调用 Handler 前建立异步执行上下文，使这些已导入的 API 能安全访问当前
+Workflow 的生命周期。
 
 ## Agents
 
@@ -68,6 +132,15 @@ interface AgentOptions {
 ```
 
 `schema` 只约束 Agent 的最终响应，并不会把 Agent Loop 降级成一次普通模型调用。
+直接调用失败时 Promise 会被 reject；`agent()` 本身不会把错误转换成 `null`。
+
+### `defaultAgent`
+
+```typescript
+const defaultAgent: CodexAgent;
+```
+
+导出的 `agent()` 函数所使用的共享 `CodexAgent` 实例。
 
 ### `Agent`
 
@@ -134,6 +207,8 @@ function parallel<const TTasks extends readonly ParallelTask[]>(
 同时启动所有惰性任务，并等待它们全部完成。结果顺序与任务顺序一致。单个任务
 抛出异常或 Promise rejection 时，对应结果为 `null`，不会取消其他任务。
 
+当前实现会立即启动传入的全部任务，没有对外承诺并发数或条目数上限。
+
 ```typescript
 const [lint, typecheck, tests] = await parallel([
   () => runLint(),
@@ -173,6 +248,7 @@ type PipelineStage<TValue, TOriginal, TNext> = (
 ) => TNext | PromiseLike<TNext>;
 ```
 
+第一个阶段收到的 `value` 就是原始输入，并不是 `undefined`。
 单个输入失败后会跳过它的剩余阶段，并在原位置返回 `null`。其他输入继续执行。
 类型推断覆盖最多五个阶段。
 
@@ -184,7 +260,8 @@ function phase(title: string): void;
 
 设置当前 Workflow 的活动阶段。进入新阶段时自动发出上一阶段的
 `workflow:phase:end`，然后发出新阶段的 `workflow:phase:start`。在 Workflow
-之外调用会抛出 `PhaseContextError`。
+之外调用会抛出 `PhaseContextError`。应在进入 `parallel()` 或 `pipeline()`
+之前设置阶段；从并发分支中修改共享阶段会产生竞态。
 
 ### `getCurrentPhase()`
 
@@ -215,7 +292,8 @@ type WorkflowHandler<TArgs, TOutput> = (
 
 宿主启动的 Workflow 深度为 `0`。嵌套路径相对于父 Workflow 文件解析，目前
 最多支持一层嵌套。模块无法加载或没有有效入口时抛出 `WorkflowLoadError`；
-超过嵌套限制时抛出 `WorkflowNestingError`。
+超过嵌套限制时抛出 `WorkflowNestingError`。调用方没有提供 Input 时，Handler
+收到的 `args` 为 `undefined`。
 
 ### `getWorkflowContext()`
 
@@ -348,7 +426,31 @@ function serializeWorkflowError(error: unknown): SerializedWorkflowError;
 
 ## Runner
 
-### CLI `run`
+### CLI
+
+通过默认的 Codex Agent 运行一次任务：
+
+```text
+deer-workflow agent "Inspect this repository"
+echo "Inspect this repository" | deer-workflow agent
+```
+
+Agent 的最终响应写入 stdout。用法错误和 Agent 错误写入 stderr，并返回非零
+退出码。
+
+通过内置 Workflow Creator Skill 生成 Workflow：
+
+```text
+deer-workflow create "Describe the Workflow"
+echo "Describe the Workflow" | deer-workflow create
+```
+
+`create` 从已安装的包中定位内置 Skill，让 Codex 读取它及其要求的 references，
+然后追加用户 Prompt。Codex 使用只读 Sandbox，并允许在 Git 仓库外运行。命令
+会移除包裹完整响应的一层 Markdown 源码围栏，因此 stdout 可以直接重定向到
+`.ts` 或 `.js` 文件。生成的 Workflow 不会自动执行。
+
+运行 Workflow 模块：
 
 ```text
 deer-workflow run <workflow>
@@ -357,8 +459,12 @@ deer-workflow run <workflow> --input-file <path>
 echo '<json>' | deer-workflow run <workflow>
 ```
 
-CLI 会创建 `WorkflowRunner` 并解析 JSON Input。Workflow 加载或执行失败时返回
-非零退出码。最终结果写入 stdout，JSONL 事件写入 stderr。
+`run` 不允许同时使用 `--input` 与 `--input-file`。Input 的读取顺序为
+`--input`、`--input-file`、非空 stdin；显式参数优先于 stdin。JSON 无法解析、
+Workflow 无法加载或执行失败时，命令返回非零退出码。
+
+CLI 会创建 `WorkflowRunner`，并把 JSONL 事件写入 stderr。字符串结果直接写入
+stdout，其他可 JSON 序列化的值写成紧凑 JSON，返回 `undefined` 时不输出结果行。
 
 ### `WorkflowRunner`
 
@@ -378,9 +484,10 @@ class WorkflowRunner {
 }
 ```
 
-运行 Workflow，并把生命周期、阶段和日志转换为统一事件流。默认将每个事件
-作为一行 JSON 输出到 stdout。同一个 Runner 可以被复用或用于并发执行；
-所有运行共享一个递增事件序列，异步上下文保持隔离。
+运行 Workflow，并把生命周期、阶段和日志转换为统一事件流。独立使用 Runner
+时，默认将每个事件作为一行 JSON 输出到 stdout；CLI 会改用 stderr Writer。
+同一个 Runner 可以被复用或用于并发执行，所有运行共享一个递增事件序列，
+异步上下文保持隔离。
 
 ```typescript
 interface WorkflowRunnerOptions {
@@ -394,7 +501,7 @@ Listener。释放后的 Runner 不能启动新的 Workflow。
 
 ## 示例
 
-- [Deep Research](../src/examples/deep-research/README.zh-CN.md)：组合使用
+- [Deep Research](../examples/deep-research/README.zh-CN.md)：组合使用
   `agent()`、`phase()`、`parallel()`、`log()` 和 `WorkflowRunner`。
-- [Blog Writer](../src/examples/blog-writer/README.zh-CN.md)：组合使用
+- [Blog Writer](../examples/blog-writer/README.zh-CN.md)：组合使用
   `agent()`、`phase()`、`pipeline()`、`log()` 和 `WorkflowRunner`。
