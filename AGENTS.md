@@ -100,6 +100,33 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   previous phase before starting the new one, and Workflow success or failure
   ends any active phase.
 
+## Workflow execution contract
+
+- A host-started relative Workflow path resolves from the current working
+  directory. A nested relative path resolves from the parent Workflow module.
+  Continue to accept absolute paths, `file:` URLs, and `{ scriptPath }`
+  references.
+- When a Workflow module exports both `default` and `run`, prefer `default`.
+  Emit `workflow:start` before loading the module, and emit exactly one
+  terminal `workflow:end` or `workflow:error` event after execution begins.
+- Preserve the event protocol types: `workflow:start`, `workflow:end`,
+  `workflow:error`, `workflow:phase:start`, `workflow:phase:end`, and `log`.
+  Keep their existing context, duration, phase, message, and serialized error
+  fields compatible.
+- `WorkflowEventEmitter` invokes listeners synchronously in subscription order.
+  Each Emitter assigns its own monotonically increasing sequence and ISO-8601
+  timestamp, and freezes the completed event object before delivery.
+- A `WorkflowRunner` may be reused and may run Workflows concurrently.
+  Executions keep separate async-local Workflow and Logging contexts while
+  sharing the Runner's Emitter and sequence space.
+- `WorkflowRunner.dispose()` removes only the JSON writer installed by the
+  Runner, preserves external event listeners, is idempotent, and prevents
+  future `run()` calls.
+- Keep CLI result serialization stable: `undefined` writes nothing, strings
+  are written as text, and every other result is serialized with
+  `JSON.stringify()` on one line. A serialization failure makes the command
+  fail rather than falling back to descriptive text.
+
 ## Commands
 
 ```bash
