@@ -11,11 +11,11 @@ Public APIs are available from the package root and from focused subpath
 exports:
 
 ```typescript
-import { agent } from "deer-workflow/agents";
-import { parallel, pipeline, workflow } from "deer-workflow/flow";
-import { WorkflowEventEmitter } from "deer-workflow/events";
-import { log } from "deer-workflow/logging";
-import { WorkflowRunner } from "deer-workflow/runner";
+import { agent } from "@deer-flow/workflow/agents";
+import { parallel, pipeline, workflow } from "@deer-flow/workflow/flow";
+import { WorkflowEventEmitter } from "@deer-flow/workflow/events";
+import { log } from "@deer-flow/workflow/logging";
+import { WorkflowRunner } from "@deer-flow/workflow/runner";
 ```
 
 ## Agents
@@ -146,9 +146,7 @@ const [lint, typecheck, tests] = await parallel([
 ```typescript
 function pipeline<TOriginal>(
   items: readonly TOriginal[],
-  ...stages: Array<
-    PipelineStage<unknown, TOriginal, unknown>
-  >
+  ...stages: Array<PipelineStage<unknown, TOriginal, unknown>>
 ): Promise<Array<unknown | null>>;
 ```
 
@@ -226,8 +224,7 @@ modules throw `WorkflowLoadError`; exceeding the nesting limit throws
 
 ```typescript
 function getWorkflowContext<TArgs = unknown>():
-  | WorkflowExecutionContext<TArgs>
-  | undefined;
+  WorkflowExecutionContext<TArgs> | undefined;
 ```
 
 Returns the Workflow context for the current async call chain:
@@ -300,14 +297,14 @@ interface WorkflowEventEnvelope {
 
 Event-specific fields:
 
-| Event | Additional fields |
-| --- | --- |
-| `workflow:start` | None |
-| `workflow:end` | `durationMs` |
-| `workflow:error` | `durationMs`, `error` |
-| `workflow:phase:start` | `phase` |
-| `workflow:phase:end` | `phase`, `durationMs` |
-| `log` | `message`, optional `phase` |
+| Event                  | Additional fields           |
+| ---------------------- | --------------------------- |
+| `workflow:start`       | None                        |
+| `workflow:end`         | `durationMs`                |
+| `workflow:error`       | `durationMs`, `error`       |
+| `workflow:phase:start` | `phase`                     |
+| `workflow:phase:end`   | `phase`, `durationMs`       |
+| `log`                  | `message`, optional `phase` |
 
 Errors are represented as JSON-safe objects:
 
@@ -349,9 +346,7 @@ called once per event without a trailing newline and defaults to `console.log`.
 ### `serializeWorkflowError()`
 
 ```typescript
-function serializeWorkflowError(
-  error: unknown,
-): SerializedWorkflowError;
+function serializeWorkflowError(error: unknown): SerializedWorkflowError;
 ```
 
 Converts any thrown value into a JSON-safe object containing `name`, `message`,
@@ -392,3 +387,10 @@ interface WorkflowRunnerOptions {
 `dispose()` removes the JSON writer installed by the constructor without
 clearing external Emitter listeners. A disposed Runner cannot start new
 executions.
+
+## Examples
+
+- [Deep Research](../src/examples/deep-research/README.md) combines `agent()`,
+  `phase()`, `parallel()`, `log()`, and `WorkflowRunner`.
+- [Blog Writer](../src/examples/blog-writer/README.md) combines `agent()`,
+  `phase()`, `pipeline()`, `log()`, and `WorkflowRunner`.

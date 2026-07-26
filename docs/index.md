@@ -49,12 +49,9 @@ named `run()` function:
 
 ```typescript
 // workflows/research.ts
-import { agent } from "deer-workflow/agents";
-import {
-  parallel,
-  phase,
-} from "deer-workflow/flow";
-import { log } from "deer-workflow/logging";
+import { agent } from "@deer-flow/workflow/agents";
+import { parallel, phase } from "@deer-flow/workflow/flow";
+import { log } from "@deer-flow/workflow/logging";
 
 interface ResearchInput {
   topics: string[];
@@ -65,16 +62,17 @@ export default async function research(args: ResearchInput) {
   log(`Researching ${args.topics.length} topics`);
 
   const findings = await parallel(
-    args.topics.map((topic) => () =>
-      agent(`Research this topic and summarize the findings: ${topic}`)
+    args.topics.map(
+      (topic) => () =>
+        agent(`Research this topic and summarize the findings: ${topic}`),
     ),
   );
 
   phase("Synthesis");
   return agent(
-    `Synthesize these findings into a concise report:\n${
-      JSON.stringify(findings)
-    }`,
+    `Synthesize these findings into a concise report:\n${JSON.stringify(
+      findings,
+    )}`,
   );
 }
 ```
@@ -88,15 +86,14 @@ Workflow succeeds or fails.
 Use `WorkflowRunner` when starting a Workflow from a host application:
 
 ```typescript
-import { WorkflowRunner } from "deer-workflow/runner";
+import { WorkflowRunner } from "@deer-flow/workflow/runner";
 
 const runner = new WorkflowRunner();
 
 try {
-  const report = await runner.run<string>(
-    "./workflows/research.ts",
-    { topics: ["Agent Skills", "Dynamic Workflow"] },
-  );
+  const report = await runner.run<string>("./workflows/research.ts", {
+    topics: ["Agent Skills", "Dynamic Workflow"],
+  });
 } finally {
   runner.dispose();
 }
@@ -150,11 +147,32 @@ One Runner can execute multiple Workflows concurrently. Async contexts remain
 isolated, while all events share a monotonically increasing `sequence` that
 lets the host reconstruct the observed order.
 
+## Examples
+
+- [Deep Research](../src/examples/deep-research/README.md) uses `parallel()` to
+  investigate independent angles before a structured synthesis.
+- [Blog Writer](../src/examples/blog-writer/README.md) uses `pipeline()` to
+  draft and review each section independently.
+
+## Development quality gate
+
+`bun install` runs the `prepare` script and installs the Husky pre-commit hook.
+Each commit first runs ESLint and Prettier against Git-staged files through
+`lint-staged`, then type-checks the complete TypeScript project. Lint-staged
+uses its default temporary stash and rollback behavior to protect partially
+staged work.
+
 ## Project commands
 
-| Command | Purpose |
-| --- | --- |
-| `bun run dev -- <args>` | Run the CLI directly. |
-| `bun test` | Run all tests under `tests/`. |
-| `bun run typecheck` | Run TypeScript type checking. |
-| `bun run check` | Run type checking and the complete test suite. |
+| Command                 | Purpose                                        |
+| ----------------------- | ---------------------------------------------- |
+| `bun run dev -- <args>` | Run the CLI directly.                          |
+| `bun run lint`          | Check JavaScript and TypeScript with ESLint.   |
+| `bun run lint:fix`      | Apply safe ESLint fixes.                       |
+| `bun run format`        | Format supported files with Prettier.          |
+| `bun run format:check`  | Check formatting without modifying files.      |
+| `bun run lint:staged`   | Check and format Git-staged files.             |
+| `bun run prepare`       | Install the repository-managed Husky hooks.    |
+| `bun test`              | Run all tests under `tests/`.                  |
+| `bun run typecheck`     | Run TypeScript type checking.                  |
+| `bun run check`         | Run every type, style, format, and test check. |

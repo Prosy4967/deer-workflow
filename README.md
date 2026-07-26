@@ -16,12 +16,16 @@ An open-source Dynamic Workflow runtime that keeps orchestration in TypeScript
 and delegates semantic work to replaceable Agent runtimes.
 
 The default `agent()` implementation runs a complete Codex CLI Agent Loop.
+The package is published as `@deer-flow/workflow`; the executable remains
+`deer-workflow`.
 
 ## Index
 
 - [Relationship with DeerFlow](#relationship-with-deerflow)
 - [Prerequisite](#prerequisite)
 - [Project scripts](#project-scripts)
+- [Git commit quality gate](#git-commit-quality-gate)
+- [Examples](#examples)
 - [Flow controls](#flow-controls)
 - [Workflow events and Runner](#workflow-events-and-runner)
 - [Logging](#logging)
@@ -72,18 +76,46 @@ bun run dev -- agent "Inspect this repository and summarize its structure."
 
 The project commands are defined in the root `package.json`:
 
-| Script | Description |
-| --- | --- |
-| `bun run dev -- <args>` | Run the CLI directly from `src/cli.ts`. |
-| `bun test` | Run all tests under `tests/`. |
-| `bun run typecheck` | Type-check the source code and tests without emitting build files. |
-| `bun run check` | Run type-checking followed by the complete test suite. |
+| Script                  | Description                                                        |
+| ----------------------- | ------------------------------------------------------------------ |
+| `bun run dev -- <args>` | Run the CLI directly from `src/cli.ts`.                            |
+| `bun run lint`          | Check JavaScript and TypeScript with ESLint.                       |
+| `bun run lint:fix`      | Apply safe ESLint fixes.                                           |
+| `bun run format`        | Format supported files with Prettier.                              |
+| `bun run format:check`  | Check formatting without changing files.                           |
+| `bun run lint:staged`   | Check and format files currently staged by Git.                    |
+| `bun run prepare`       | Install the repository-managed Husky hooks.                        |
+| `bun test`              | Run all tests under `tests/`.                                      |
+| `bun run typecheck`     | Type-check the source code and tests without emitting build files. |
+| `bun run check`         | Run type-checking, linting, formatting checks, and tests.          |
 
 Before opening a pull request, run:
 
 ```bash
 bun run check
 ```
+
+## Git commit quality gate
+
+Husky installs a `pre-commit` hook through the `prepare` script. Before every
+commit, the hook runs `lint-staged` against only the files in Git's staging
+area:
+
+- JavaScript and TypeScript files run through ESLint fixes and Prettier.
+- JSON, Markdown, and YAML files run through Prettier.
+- The complete TypeScript project runs through `bun run typecheck`.
+
+`lint-staged` creates a temporary Git stash by default before modifying staged
+files. If a task fails, it restores the original state and blocks the commit.
+Type checking then validates the complete project because checking isolated
+files would lose the repository's `tsconfig.json` context.
+
+## Examples
+
+- [Deep Research](./src/examples/deep-research/README.md) demonstrates
+  planning, parallel source-backed research, and structured synthesis.
+- [Blog Writer](./src/examples/blog-writer/README.md) demonstrates an outline,
+  per-section Draft/Review Pipeline, and final article assembly.
 
 ## Flow controls
 
@@ -92,10 +124,7 @@ Barrier. `pipeline()` lets each item advance through its stages independently.
 An individual failure becomes `null` without cancelling sibling work.
 
 ```typescript
-import {
-  parallel,
-  pipeline,
-} from "deer-workflow/flow";
+import { parallel, pipeline } from "@deer-flow/workflow/flow";
 
 const checks = await parallel([
   () => runLint(),
@@ -117,10 +146,7 @@ its handler as either `default` or `run`:
 
 ```typescript
 // workflows/release.ts
-import {
-  parallel,
-  phase,
-} from "deer-workflow/flow";
+import { parallel, phase } from "@deer-flow/workflow/flow";
 
 export default async function release(args: { version: string }) {
   phase("Build");
@@ -135,7 +161,7 @@ export default async function release(args: { version: string }) {
 Run it from another Workflow or from the host application:
 
 ```typescript
-import { workflow } from "deer-workflow/flow";
+import { workflow } from "@deer-flow/workflow/flow";
 
 const artifacts = await workflow(
   { scriptPath: "./workflows/release.ts" },
@@ -154,7 +180,7 @@ stream easy to consume from a CLI parent process without parsing human-oriented
 text.
 
 ```typescript
-import { WorkflowRunner } from "deer-workflow/runner";
+import { WorkflowRunner } from "@deer-flow/workflow/runner";
 
 const runner = new WorkflowRunner();
 
@@ -170,14 +196,14 @@ try {
 
 The event protocol currently includes:
 
-| Event | Meaning |
-| --- | --- |
-| `workflow:start` | A Workflow invocation is about to load and run. |
-| `workflow:end` | The invocation completed successfully. |
-| `workflow:error` | The invocation failed; includes a JSON-safe error. |
-| `workflow:phase:start` | `phase()` entered a named phase. |
-| `workflow:phase:end` | A phase completed or was closed by a transition. |
-| `log` | `log()` emitted a progress message. |
+| Event                  | Meaning                                            |
+| ---------------------- | -------------------------------------------------- |
+| `workflow:start`       | A Workflow invocation is about to load and run.    |
+| `workflow:end`         | The invocation completed successfully.             |
+| `workflow:error`       | The invocation failed; includes a JSON-safe error. |
+| `workflow:phase:start` | `phase()` entered a named phase.                   |
+| `workflow:phase:end`   | A phase completed or was closed by a transition.   |
+| `log`                  | `log()` emitted a progress message.                |
 
 Every event contains `sequence`, `timestamp`, `workflowId`, `depth`, and
 `scriptPath`. Nested Workflow events also contain `parentWorkflowId`. End and
@@ -214,7 +240,7 @@ const unsubscribe = runner.on((event) => {
 go to stderr so CLI results and JSON output remain machine-readable:
 
 ```typescript
-import { log } from "deer-workflow/logging";
+import { log } from "@deer-flow/workflow/logging";
 
 log("Running repository checks");
 ```
@@ -223,10 +249,7 @@ Hosts can install an async-local Log Sink to send the same messages to a
 progress view, Journal, or test collector:
 
 ```typescript
-import {
-  log,
-  withLogSink,
-} from "deer-workflow/logging";
+import { log, withLogSink } from "@deer-flow/workflow/logging";
 
 await withLogSink(
   (message) => progressView.append(message),
@@ -243,7 +266,7 @@ each `log()` call into a JSON `log` event. Outside a Runner, the stderr behavior
 is unchanged.
 
 ```typescript
-import { agent } from "deer-workflow/agents";
+import { agent } from "@deer-flow/workflow/agents";
 
 const result = await agent<{
   ok: boolean;

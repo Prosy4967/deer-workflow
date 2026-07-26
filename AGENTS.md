@@ -10,6 +10,15 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 
 - Use Bun for package management, scripts, tests, and process execution.
 - Use strict TypeScript.
+- Publish the package as `@deer-flow/workflow` while keeping the CLI command
+  named `deer-workflow`.
+- Use the `tsconfig.json` path aliases to exercise public
+  `@deer-flow/workflow/*` imports locally.
+- Keep runnable examples under `src/examples/<example-name>/`, with types in
+  `types.ts`, the Workflow entry point in `workflow.ts`, and reciprocal English
+  and Simplified Chinese README files.
+- Link relevant examples from both language variants of the root README,
+  Getting Started guide, and API reference.
 - Keep the CLI entry point at `src/cli.ts`.
 - Keep all Agent type aliases and interfaces in `src/agents/types.ts`.
 - Keep the vendor-neutral Agent binder in `src/agents/agent.ts`.
@@ -38,6 +47,9 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 
 ```bash
 bun install
+bun run lint
+bun run format:check
+bun run prepare
 bun run typecheck
 bun test
 bun run check
@@ -50,15 +62,30 @@ Run `bun run check` before handing off a change.
 
 The root `package.json` is the source of truth for project commands:
 
-| Script | Purpose |
-| --- | --- |
+| Script                  | Purpose                                                                  |
+| ----------------------- | ------------------------------------------------------------------------ |
 | `bun run dev -- <args>` | Run the TypeScript CLI entry point directly and forward arguments to it. |
-| `bun test` | Run every test under the top-level `tests/` directory. |
-| `bun run typecheck` | Type-check both `src/` and `tests/` without emitting files. |
-| `bun run check` | Run type-checking first, then the complete test suite. |
+| `bun run lint`          | Lint JavaScript and TypeScript without modifying files.                  |
+| `bun run lint:fix`      | Apply safe ESLint fixes.                                                 |
+| `bun run format`        | Format supported repository files with Prettier.                         |
+| `bun run format:check`  | Check Prettier formatting without modifying files.                       |
+| `bun run lint:staged`   | Run the pre-commit checks against Git-staged files.                      |
+| `bun run prepare`       | Install the repository-managed Husky hooks.                              |
+| `bun test`              | Run every test under the top-level `tests/` directory.                   |
+| `bun run typecheck`     | Type-check both `src/` and `tests/` without emitting files.              |
+| `bun run check`         | Run type-checking, lint, format checks, and the complete test suite.     |
 
 Keep script names stable. When adding or changing a script, update this table
 and the corresponding table in `README.md`.
+
+## Quality gates
+
+- Use ESLint Flat Config from `eslint.config.js`.
+- Use Prettier as the only code formatter.
+- Keep `.husky/pre-commit` limited to `lint-staged` followed by the project-wide
+  `typecheck`; do not run the complete test suite during a commit.
+- Keep staged-file commands in `lint-staged.config.js`.
+- Preserve lint-staged's default backup stash and rollback behavior.
 
 ## Agent contract
 

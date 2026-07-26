@@ -45,12 +45,9 @@ Workflow 是一个导出 `default` 函数或 `run()` 函数的 TypeScript 模块
 
 ```typescript
 // workflows/research.ts
-import { agent } from "deer-workflow/agents";
-import {
-  parallel,
-  phase,
-} from "deer-workflow/flow";
-import { log } from "deer-workflow/logging";
+import { agent } from "@deer-flow/workflow/agents";
+import { parallel, phase } from "@deer-flow/workflow/flow";
+import { log } from "@deer-flow/workflow/logging";
 
 interface ResearchInput {
   topics: string[];
@@ -61,16 +58,17 @@ export default async function research(args: ResearchInput) {
   log(`Researching ${args.topics.length} topics`);
 
   const findings = await parallel(
-    args.topics.map((topic) => () =>
-      agent(`Research this topic and summarize the findings: ${topic}`)
+    args.topics.map(
+      (topic) => () =>
+        agent(`Research this topic and summarize the findings: ${topic}`),
     ),
   );
 
   phase("Synthesis");
   return agent(
-    `Synthesize these findings into a concise report:\n${
-      JSON.stringify(findings)
-    }`,
+    `Synthesize these findings into a concise report:\n${JSON.stringify(
+      findings,
+    )}`,
   );
 }
 ```
@@ -83,15 +81,14 @@ export default async function research(args: ResearchInput) {
 推荐通过 `WorkflowRunner` 从宿主程序启动 Workflow：
 
 ```typescript
-import { WorkflowRunner } from "deer-workflow/runner";
+import { WorkflowRunner } from "@deer-flow/workflow/runner";
 
 const runner = new WorkflowRunner();
 
 try {
-  const report = await runner.run<string>(
-    "./workflows/research.ts",
-    { topics: ["Agent Skills", "Dynamic Workflow"] },
-  );
+  const report = await runner.run<string>("./workflows/research.ts", {
+    topics: ["Agent Skills", "Dynamic Workflow"],
+  });
 } finally {
   runner.dispose();
 }
@@ -144,11 +141,31 @@ runner.dispose();
 同一个 Runner 可以并发执行多个 Workflow。每次执行的异步上下文彼此隔离，
 事件则共享一个递增的 `sequence`，宿主可以据此还原实际发生顺序。
 
+## 示例
+
+- [Deep Research](../src/examples/deep-research/README.zh-CN.md)：使用
+  `parallel()` 并行研究多个独立角度，再进行结构化汇编。
+- [Blog Writer](../src/examples/blog-writer/README.zh-CN.md)：使用 `pipeline()`
+  让每个章节独立通过起草和审校阶段。
+
+## 开发门禁
+
+`bun install` 会运行 `prepare` 脚本并安装 Husky pre-commit Hook。每次提交时，
+先由 `lint-staged` 对 Git 暂存文件执行 ESLint 和 Prettier，再对完整 TypeScript
+项目执行类型检查。Lint-staged 保留默认的临时 stash 和失败回滚机制，避免破坏
+部分暂存的工作区。
+
 ## 项目命令
 
-| 命令 | 用途 |
-| --- | --- |
-| `bun run dev -- <args>` | 直接运行 CLI。 |
-| `bun test` | 运行 `tests/` 下的全部测试。 |
-| `bun run typecheck` | 执行 TypeScript 类型检查。 |
-| `bun run check` | 依次运行类型检查和完整测试。 |
+| 命令                    | 用途                           |
+| ----------------------- | ------------------------------ |
+| `bun run dev -- <args>` | 直接运行 CLI。                 |
+| `bun run lint`          | 使用 ESLint 检查代码。         |
+| `bun run lint:fix`      | 应用 ESLint 自动修复。         |
+| `bun run format`        | 使用 Prettier 格式化文件。     |
+| `bun run format:check`  | 检查格式但不修改文件。         |
+| `bun run lint:staged`   | 检查并格式化 Git 暂存文件。    |
+| `bun run prepare`       | 安装仓库管理的 Husky Hooks。   |
+| `bun test`              | 运行 `tests/` 下的全部测试。   |
+| `bun run typecheck`     | 执行 TypeScript 类型检查。     |
+| `bun run check`         | 运行全部类型、风格与测试检查。 |

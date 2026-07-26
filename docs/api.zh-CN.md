@@ -10,11 +10,11 @@
 所有公开 API 都可以从包根路径导入，也可以使用对应的子路径：
 
 ```typescript
-import { agent } from "deer-workflow/agents";
-import { parallel, pipeline, workflow } from "deer-workflow/flow";
-import { WorkflowEventEmitter } from "deer-workflow/events";
-import { log } from "deer-workflow/logging";
-import { WorkflowRunner } from "deer-workflow/runner";
+import { agent } from "@deer-flow/workflow/agents";
+import { parallel, pipeline, workflow } from "@deer-flow/workflow/flow";
+import { WorkflowEventEmitter } from "@deer-flow/workflow/events";
+import { log } from "@deer-flow/workflow/logging";
+import { WorkflowRunner } from "@deer-flow/workflow/runner";
 ```
 
 ## Agents
@@ -143,9 +143,7 @@ const [lint, typecheck, tests] = await parallel([
 ```typescript
 function pipeline<TOriginal>(
   items: readonly TOriginal[],
-  ...stages: Array<
-    PipelineStage<unknown, TOriginal, unknown>
-  >
+  ...stages: Array<PipelineStage<unknown, TOriginal, unknown>>
 ): Promise<Array<unknown | null>>;
 ```
 
@@ -219,8 +217,7 @@ type WorkflowHandler<TArgs, TOutput> = (
 
 ```typescript
 function getWorkflowContext<TArgs = unknown>():
-  | WorkflowExecutionContext<TArgs>
-  | undefined;
+  WorkflowExecutionContext<TArgs> | undefined;
 ```
 
 读取当前异步调用链中的 Workflow 上下文：
@@ -292,14 +289,14 @@ interface WorkflowEventEnvelope {
 
 事件特有字段：
 
-| Event | Additional fields |
-| --- | --- |
-| `workflow:start` | 无 |
-| `workflow:end` | `durationMs` |
-| `workflow:error` | `durationMs`, `error` |
-| `workflow:phase:start` | `phase` |
-| `workflow:phase:end` | `phase`, `durationMs` |
-| `log` | `message`, optional `phase` |
+| Event                  | Additional fields           |
+| ---------------------- | --------------------------- |
+| `workflow:start`       | 无                          |
+| `workflow:end`         | `durationMs`                |
+| `workflow:error`       | `durationMs`, `error`       |
+| `workflow:phase:start` | `phase`                     |
+| `workflow:phase:end`   | `phase`, `durationMs`       |
+| `log`                  | `message`, optional `phase` |
 
 `workflow:error` 中的错误是可以安全序列化的对象：
 
@@ -340,9 +337,7 @@ function createJsonEventWriter(
 ### `serializeWorkflowError()`
 
 ```typescript
-function serializeWorkflowError(
-  error: unknown,
-): SerializedWorkflowError;
+function serializeWorkflowError(error: unknown): SerializedWorkflowError;
 ```
 
 把任意抛出值转换为包含 `name`、`message` 和可选 `stack` 的 JSON-safe 对象。
@@ -380,3 +375,10 @@ interface WorkflowRunnerOptions {
 
 `dispose()` 会移除构造函数安装的 JSON Writer，保留外部注册到 Emitter 的
 Listener。释放后的 Runner 不能启动新的 Workflow。
+
+## 示例
+
+- [Deep Research](../src/examples/deep-research/README.zh-CN.md)：组合使用
+  `agent()`、`phase()`、`parallel()`、`log()` 和 `WorkflowRunner`。
+- [Blog Writer](../src/examples/blog-writer/README.zh-CN.md)：组合使用
+  `agent()`、`phase()`、`pipeline()`、`log()` 和 `WorkflowRunner`。
