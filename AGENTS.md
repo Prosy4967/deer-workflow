@@ -177,8 +177,29 @@ and the corresponding table in both language variants of `docs/index.md`.
 - `agent(prompt, options)` represents a complete Agent Loop, not a single model completion.
 - JSON Schema constrains the final Agent response only.
 - A schema-backed call returns parsed JSON; a call without a schema returns text.
+- The Agent runtime is responsible for enforcing a supplied JSON Schema. The
+  shared Deer Workflow contract transports the schema and parses the final
+  response; the TypeScript output generic is not runtime validation.
+- Per-run `AgentOptions` override runtime constructor defaults. Merge process,
+  runtime, and per-run environments in that order; an `undefined` value removes
+  that environment variable.
+- An already-aborted signal must fail before starting the Agent process.
+  Aborting an active run must terminate its subprocess, remove the abort
+  listener, propagate the abort reason, and still clean up temporary files.
 - Keep the generic Agent interface independent from Codex CLI flags whenever possible.
 - New runtimes should implement the same `Agent` interface and remain swappable.
+
+## Public package contract
+
+- Preserve the package root and the focused `./agents`, `./events`, `./flow`,
+  `./logging`, and `./runner` export paths. Add public APIs through the relevant
+  `index.ts` and re-export them from `src/index.ts` when they belong at the
+  package root.
+- The package currently publishes Bun-runnable TypeScript source directly:
+  package exports point to `src/**/*.ts` and the CLI `bin` points to
+  `src/cli.ts`. Introducing compiled `dist` artifacts, a build step, or Node.js
+  runtime compatibility is a release architecture change that requires
+  coordinated export, bin, installation, test, and documentation updates.
 
 ## Process safety
 
