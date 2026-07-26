@@ -18,7 +18,7 @@ deer-workflow run ./examples/blog-writer/workflow.ts \
 也可以通过 `WorkflowRunner` 在程序中运行：
 
 ```typescript
-import { WorkflowRunner } from "@deer-work/workflow/runner";
+import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
 
 const runner = new WorkflowRunner();
 

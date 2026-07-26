@@ -18,7 +18,7 @@
 Agent Runtime。
 
 `deer-workflow` 是 **DeerFlow 3.0**（即 **DeerWork**）的试点项目。包名为
-`@deer-work/workflow`，命令行名称为 `deer-workflow`。
+`@deer-work-ai/workflow`，命令行名称为 `deer-workflow`。
 
 ## 目录
 
@@ -61,10 +61,10 @@ bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
 deer-workflow --help
 ```
 
-`@deer-work/workflow` 发布到 npm 后，可用下面的命令安装正式版本：
+`@deer-work-ai/workflow` 发布到 npm 后，可用下面的命令安装正式版本：
 
 ```bash
-bun install --global @deer-work/workflow
+bun install --global @deer-work-ai/workflow
 ```
 
 不带 `--global` 的 `bun install` 只会安装当前项目的本地依赖，不会在全局安装

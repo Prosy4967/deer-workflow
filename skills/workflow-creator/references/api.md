@@ -62,7 +62,7 @@ import {
   phase,
   pipeline,
   workflow,
-} from "@deer-work/workflow";
+} from "@deer-work-ai/workflow";
 ```
 
 Focused exports are also available from `/agents`, `/flow`, and `/logging`.

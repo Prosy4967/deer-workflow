@@ -46,10 +46,10 @@ bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
 deer-workflow --help
 ```
 
-`@deer-work/workflow` 发布到 npm 后，使用下面的命令安装正式版本：
+`@deer-work-ai/workflow` 发布到 npm 后，使用下面的命令安装正式版本：
 
 ```bash
-bun install --global @deer-work/workflow
+bun install --global @deer-work-ai/workflow
 ```
 
 不带 `--global` 的 `bun install` 不会全局安装 CLI；它只在当前项目中安装本地
@@ -65,7 +65,7 @@ Workflow 是一个导出 `default` 函数或 `run()` 函数的 TypeScript 模块
 
 ```typescript
 // workflows/research.ts
-import { agent, log, parallel, phase } from "@deer-work/workflow";
+import { agent, log, parallel, phase } from "@deer-work-ai/workflow";
 
 export const meta = {
   name: "topic-research",
@@ -139,7 +139,7 @@ stdin，且两者不能同时使用。
 从宿主程序启动同一个 Workflow 时使用 `WorkflowRunner`：
 
 ```typescript
-import { WorkflowRunner } from "@deer-work/workflow/runner";
+import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
 
 const runner = new WorkflowRunner();
 

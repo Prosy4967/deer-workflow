@@ -10,12 +10,12 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 
 - Use Bun for package management, scripts, tests, and process execution.
 - Use strict TypeScript.
-- Publish the package as `@deer-work/workflow` while keeping the CLI command
+- Publish the package as `@deer-work-ai/workflow` while keeping the CLI command
   named `deer-workflow`.
 - Until the first npm release, document
   `bun install --global git+https://github.com/deerwork-ai/deer-workflow.git` as
   the working global CLI installation. After publication, document
-  `bun install --global @deer-work/workflow` as the released-package path.
+  `bun install --global @deer-work-ai/workflow` as the released-package path.
 - Never describe bare `bun install` as a global installation; in this
   repository it installs local development dependencies and Git hooks.
 - Keep `deer-workflow run` as the Workflow execution command.
@@ -35,7 +35,7 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   non-empty stdin. Reject simultaneous `--input` and `--input-file`; explicit
   options take precedence over stdin.
 - Use the `tsconfig.json` path aliases to exercise public
-  `@deer-work/workflow/*` imports locally.
+  `@deer-work-ai/workflow/*` imports locally.
 - Keep runnable examples under `examples/<example-name>/`, with types in
   `types.ts`, the Workflow entry point in `workflow.ts`, and reciprocal English
   and Simplified Chinese README files.
@@ -72,7 +72,7 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   metadata is emitted or consumed until runtime support is implemented.
 - Name the Handler's first caller-input parameter `args`. It is an ordinary
   function parameter, not a JavaScript global.
-- Workflow modules import APIs explicitly from `@deer-work/workflow` or its
+- Workflow modules import APIs explicitly from `@deer-work-ai/workflow` or its
   subpaths. The Runner injects async-local lifecycle, phase, event, and logging
   context; it does not install API functions on `globalThis` or pass them as a
   destructured handler argument.

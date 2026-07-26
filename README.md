@@ -18,7 +18,7 @@ An open-source Dynamic Workflow runtime that combines deterministic TypeScript
 orchestration with replaceable Agent runtimes.
 
 `deer-workflow` is a pilot project for **DeerFlow 3.0**, also known as
-**DeerWork**. The package name is `@deer-work/workflow`; the executable is
+**DeerWork**. The package name is `@deer-work-ai/workflow`; the executable is
 named `deer-workflow`.
 
 ## Index
@@ -62,11 +62,11 @@ bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
 deer-workflow --help
 ```
 
-After `@deer-work/workflow` is published to npm, install a released version
+After `@deer-work-ai/workflow` is published to npm, install a released version
 with:
 
 ```bash
-bun install --global @deer-work/workflow
+bun install --global @deer-work-ai/workflow
 ```
 
 Running `bun install` without `--global` only installs dependencies for the

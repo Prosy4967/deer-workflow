@@ -49,11 +49,11 @@ bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
 deer-workflow --help
 ```
 
-After `@deer-work/workflow` is published to npm, install a released version
+After `@deer-work-ai/workflow` is published to npm, install a released version
 with:
 
 ```bash
-bun install --global @deer-work/workflow
+bun install --global @deer-work-ai/workflow
 ```
 
 Bare `bun install` does not install the CLI globally. It installs local
@@ -71,7 +71,7 @@ inject `agent()`, `parallel()`, or other functions into the handler:
 
 ```typescript
 // workflows/research.ts
-import { agent, log, parallel, phase } from "@deer-work/workflow";
+import { agent, log, parallel, phase } from "@deer-work-ai/workflow";
 
 export const meta = {
   name: "topic-research",
@@ -149,7 +149,7 @@ cannot be combined.
 Use `WorkflowRunner` when starting the same Workflow from a host application:
 
 ```typescript
-import { WorkflowRunner } from "@deer-work/workflow/runner";
+import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
 
 const runner = new WorkflowRunner();
 

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@deer-work/workflow",
+      "name": "@deer-work-ai/workflow",
       "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@types/bun": "latest",

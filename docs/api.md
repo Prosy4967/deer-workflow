@@ -20,17 +20,22 @@ import {
   workflow,
   WorkflowEventEmitter,
   WorkflowRunner,
-} from "@deer-work/workflow";
+} from "@deer-work-ai/workflow";
 ```
 
 Equivalent focused subpath imports:
 
 ```typescript
-import { agent } from "@deer-work/workflow/agents";
-import { parallel, phase, pipeline, workflow } from "@deer-work/workflow/flow";
-import { WorkflowEventEmitter } from "@deer-work/workflow/events";
-import { log } from "@deer-work/workflow/logging";
-import { WorkflowRunner } from "@deer-work/workflow/runner";
+import { agent } from "@deer-work-ai/workflow/agents";
+import {
+  parallel,
+  phase,
+  pipeline,
+  workflow,
+} from "@deer-work-ai/workflow/flow";
+import { WorkflowEventEmitter } from "@deer-work-ai/workflow/events";
+import { log } from "@deer-work-ai/workflow/logging";
+import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
 ```
 
 ## Workflow module contract
@@ -80,7 +85,7 @@ Workflow does not need to declare this parameter when it does not use it.
 
 ### Runtime context and imports
 
-Workflow APIs are imported explicitly from `@deer-work/workflow`. The CLI does
+Workflow APIs are imported explicitly from `@deer-work-ai/workflow`. The CLI does
 not inject `agent`, `parallel`, `pipeline`, `phase`, `workflow`, or `log` as
 globals. The Runner establishes the asynchronous execution context before
 calling the Handler, allowing those imported APIs to access the active Workflow

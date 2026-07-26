@@ -1,6 +1,6 @@
-import { agent } from "@deer-work/workflow/agents";
-import { phase, pipeline } from "@deer-work/workflow/flow";
-import { log } from "@deer-work/workflow/logging";
+import { agent } from "@deer-work-ai/workflow/agents";
+import { phase, pipeline } from "@deer-work-ai/workflow/flow";
+import { log } from "@deer-work-ai/workflow/logging";
 
 import type {
   BlogArticle,
