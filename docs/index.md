@@ -45,7 +45,7 @@ any Agent process starts.
 Install the released CLI globally from npm:
 
 ```bash
-bun install --global @deer-work-ai/workflow
+bun install --global @deerwork-ai/deer-workflow
 deer-workflow --help
 ```
 
@@ -64,7 +64,7 @@ inject `agent()`, `parallel()`, or other functions into the handler:
 
 ```typescript
 // workflows/research.ts
-import { agent, log, parallel, phase } from "@deer-work-ai/workflow";
+import { agent, log, parallel, phase } from "@deerwork-ai/deer-workflow";
 
 export const meta = {
   name: "topic-research",
@@ -125,6 +125,17 @@ deer-workflow create \
 source on stdout. It also accepts the prompt from stdin. The generated module
 is not executed automatically.
 
+To use the same Skill from another Agent that supports Agent Skills, install
+the bundled copy into any existing user Skill directories:
+
+```bash
+deer-workflow skill install
+```
+
+The command checks `~/.agents/skills` and `~/.claude/skills`, copies
+`workflow-creator` into the directories that exist, and reports every installed
+or skipped destination.
+
 ## Run a Workflow
 
 Use the CLI when starting a Workflow from a shell:
@@ -142,7 +153,7 @@ cannot be combined.
 Use `WorkflowRunner` when starting the same Workflow from a host application:
 
 ```typescript
-import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
+import { WorkflowRunner } from "@deerwork-ai/deer-workflow/runner";
 
 const runner = new WorkflowRunner();
 

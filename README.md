@@ -8,7 +8,7 @@
 [API](./docs/api.zh-CN.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![npm](https://img.shields.io/npm/v/@deer-work-ai/workflow)](https://www.npmjs.com/package/@deer-work-ai/workflow)
+[![npm](https://img.shields.io/npm/v/@deerwork-ai/deer-workflow)](https://www.npmjs.com/package/@deerwork-ai/deer-workflow)
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?logo=bun&logoColor=000000)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
 [![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
@@ -18,8 +18,9 @@
 An open-source Dynamic Workflow runtime that combines deterministic TypeScript
 orchestration with replaceable Agent runtimes.
 
-`deer-workflow` is a pilot project for **DeerFlow 3.0**, also known as
-**DeerWork**. The package name is `@deer-work-ai/workflow`; the executable is
+`deer-workflow` is a pilot project for
+[**DeerFlow 3.0**](https://github.com/bytedance/deer-flow), also known as
+**DeerWork**. The package name is `@deerwork-ai/deer-workflow`; the executable is
 named `deer-workflow`.
 
 ## Index
@@ -62,7 +63,7 @@ app does not install the `codex` terminal command.
 Install the released CLI from npm:
 
 ```bash
-bun install --global @deer-work-ai/workflow
+bun install --global @deerwork-ai/deer-workflow
 deer-workflow --help
 ```
 
@@ -86,12 +87,16 @@ deer-workflow create \
   > workflow.ts
 ```
 
-Alternatively, install the Skill in any Agent that supports Agent Skills, then
-ask that Agent to create a Workflow:
+Alternatively, install the bundled Skill for your Agents, then ask any Agent
+that supports Agent Skills to create a Workflow:
 
 ```bash
-bunx skills add deerwork-ai/deer-workflow --skill workflow-creator
+deer-workflow skill install
 ```
+
+The command copies the Skill into existing `~/.agents/skills` and
+`~/.claude/skills` directories and reports which destinations it changed or
+skipped.
 
 ## Run a Workflow
 

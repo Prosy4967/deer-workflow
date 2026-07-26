@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { pipeline } from "@deer-work-ai/workflow/flow";
+import { pipeline } from "@deerwork-ai/deer-workflow/flow";
 
 describe("pipeline", () => {
   test("passes each stage its current value, original item, and index", async () => {

@@ -19,22 +19,22 @@ import {
   workflow,
   WorkflowEventEmitter,
   WorkflowRunner,
-} from "@deer-work-ai/workflow";
+} from "@deerwork-ai/deer-workflow";
 ```
 
 也可以使用等价的子路径：
 
 ```typescript
-import { agent } from "@deer-work-ai/workflow/agents";
+import { agent } from "@deerwork-ai/deer-workflow/agents";
 import {
   parallel,
   phase,
   pipeline,
   workflow,
-} from "@deer-work-ai/workflow/flow";
-import { WorkflowEventEmitter } from "@deer-work-ai/workflow/events";
-import { log } from "@deer-work-ai/workflow/logging";
-import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
+} from "@deerwork-ai/deer-workflow/flow";
+import { WorkflowEventEmitter } from "@deerwork-ai/deer-workflow/events";
+import { log } from "@deerwork-ai/deer-workflow/logging";
+import { WorkflowRunner } from "@deerwork-ai/deer-workflow/runner";
 ```
 
 ## Workflow 模块契约
@@ -81,7 +81,7 @@ type WorkflowHandler<TArgs, TOutput> = (
 
 ### Runtime 上下文与 Imports
 
-Workflow API 需要从 `@deer-work-ai/workflow` 显式导入。CLI 不会把 `agent`、
+Workflow API 需要从 `@deerwork-ai/deer-workflow` 显式导入。CLI 不会把 `agent`、
 `parallel`、`pipeline`、`phase`、`workflow` 或 `log` 注入为全局变量。Runner
 会在调用 Handler 前建立异步执行上下文，使这些已导入的 API 能安全访问当前
 Workflow 的生命周期。
@@ -454,6 +454,16 @@ echo "Describe the Workflow" | deer-workflow create
 然后追加用户 Prompt。Codex 使用只读 Sandbox，并允许在 Git 仓库外运行。命令
 会移除包裹完整响应的一层 Markdown 源码围栏，因此 stdout 可以直接重定向到
 `.ts` 或 `.js` 文件。生成的 Workflow 不会自动执行。
+
+为其他 Agent 安装内置 Workflow Creator Skill：
+
+```text
+deer-workflow skill install
+```
+
+`skill install` 会检查已有的 `~/.agents/skills` 与 `~/.claude/skills` 目录，
+把 `workflow-creator` 复制到其中每个存在的目录，必要时以包内版本更新文件，
+跳过缺失目录，并报告每个目标位置。它不会创建 Agent 的上级 Skill 目录。
 
 运行 Workflow 模块：
 

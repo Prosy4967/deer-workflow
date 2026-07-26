@@ -3,8 +3,8 @@ import { describe, expect, test } from "bun:test";
 import {
   createJsonEventWriter,
   WorkflowEventEmitter,
-} from "@deer-work-ai/workflow/events";
-import type { WorkflowEvent } from "@deer-work-ai/workflow/events";
+} from "@deerwork-ai/deer-workflow/events";
+import type { WorkflowEvent } from "@deerwork-ai/deer-workflow/events";
 
 const eventContext = {
   workflowId: "workflow-1",

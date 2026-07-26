@@ -10,9 +10,9 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 
 - Use Bun for package management, scripts, tests, and process execution.
 - Use strict TypeScript.
-- Publish the package as `@deer-work-ai/workflow` while keeping the CLI command
+- Publish the package as `@deerwork-ai/deer-workflow` while keeping the CLI command
   named `deer-workflow`.
-- Document `bun install --global @deer-work-ai/workflow` as the primary global
+- Document `bun install --global @deerwork-ai/deer-workflow` as the primary global
   CLI installation. Use the GitHub installation only when explicitly
   describing an unreleased repository snapshot.
 - Never describe bare `bun install` as a global installation; in this
@@ -34,7 +34,7 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   non-empty stdin. Reject simultaneous `--input` and `--input-file`; explicit
   options take precedence over stdin.
 - Use the `tsconfig.json` path aliases to exercise public
-  `@deer-work-ai/workflow/*` imports locally.
+  `@deerwork-ai/deer-workflow/*` imports locally.
 - Keep runnable examples under `examples/<example-name>/`, with types in
   `types.ts`, the Workflow entry point in `workflow.ts`, and reciprocal English
   and Simplified Chinese README files.
@@ -71,7 +71,7 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   metadata is emitted or consumed until runtime support is implemented.
 - Name the Handler's first caller-input parameter `args`. It is an ordinary
   function parameter, not a JavaScript global.
-- Workflow modules import APIs explicitly from `@deer-work-ai/workflow` or its
+- Workflow modules import APIs explicitly from `@deerwork-ai/deer-workflow` or its
   subpaths. The Runner injects async-local lifecycle, phase, event, and logging
   context; it does not install API functions on `globalThis` or pass them as a
   destructured handler argument.
@@ -202,13 +202,19 @@ and the corresponding table in both language variants of `docs/index.md`.
 
 ## Release process
 
+- Treat the user's instruction `publish` as explicit authorization to
+  execute the complete release process end to end, including preparing and
+  committing release changes, pushing `main`, publishing to npm, creating and
+  pushing the tag, creating the GitHub Release, and publishing to GitHub
+  Packages. Do not stop merely to ask for confirmation of these steps.
 - Releases are made from a clean `main` branch that is synchronized with
   `origin/main`. Do not publish from an uncommitted worktree or an unpushed
   commit.
-- Maintain a root `CHANGELOG.md`. Before every release, move the relevant
-  entries from `Unreleased` into a version heading with an ISO date, summarize
-  user-visible changes, and add a fresh empty `Unreleased` section. Create the
-  file before the next release if it does not exist.
+- Start every release by creating or updating the root `CHANGELOG.md`. Move the
+  relevant entries from `Unreleased` into a version heading with an ISO date,
+  then add a fresh empty `Unreleased` section. Mention only substantial,
+  user-visible changes as individual entries; consolidate small fixes instead
+  of enumerating them, using a concise summary such as `Minor bug fixes`.
 - Update the English and Simplified Chinese installation and API documentation
   whenever a release changes package requirements, commands, or public
   behavior.
@@ -243,6 +249,11 @@ and the corresponding table in both language variants of `docs/index.md`.
 - Create and push the annotated `v<version>` Git tag only after the registry
   verification succeeds. Then create the GitHub Release from that existing tag
   with `gh release create v<version> --verify-tag --generate-notes`.
+- Creating the GitHub Release must trigger
+  `.github/workflows/publish-github-package.yml`. Monitor the corresponding
+  GitHub Actions run through completion and verify that the exact version is
+  available in GitHub Packages. If the release event does not trigger the
+  workflow, dispatch it manually and monitor that run instead.
 - If publication fails before npm accepts the version, fix the cause, rerun all
   checks, rebuild the tarball, and retry. If npm accepted a broken version,
   never overwrite it; publish a new patch version.

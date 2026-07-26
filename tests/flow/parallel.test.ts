@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { parallel } from "@deer-work-ai/workflow/flow";
+import { parallel } from "@deerwork-ai/deer-workflow/flow";
 
 describe("parallel", () => {
   test("runs tasks concurrently and preserves input order", async () => {

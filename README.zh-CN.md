@@ -8,7 +8,7 @@
 [API](./docs/api.zh-CN.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![npm](https://img.shields.io/npm/v/@deer-work-ai/workflow)](https://www.npmjs.com/package/@deer-work-ai/workflow)
+[![npm](https://img.shields.io/npm/v/@deerwork-ai/deer-workflow)](https://www.npmjs.com/package/@deerwork-ai/deer-workflow)
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?logo=bun&logoColor=000000)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
 [![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
@@ -18,8 +18,9 @@
 一个开源的 Dynamic Workflow Runtime：用确定性的 TypeScript 编排组织可替换的
 Agent Runtime。
 
-`deer-workflow` 是 **DeerFlow 3.0**（即 **DeerWork**）的试点项目。包名为
-`@deer-work-ai/workflow`，命令行名称为 `deer-workflow`。
+`deer-workflow` 是
+[**DeerFlow 3.0**](https://github.com/bytedance/deer-flow)（即 **DeerWork**）的
+试点项目。包名为 `@deerwork-ai/deer-workflow`，命令行名称为 `deer-workflow`。
 
 ## 目录
 
@@ -61,7 +62,7 @@ Codex CLI 与 Codex Desktop 是两个独立安装。安装 Desktop 应用不会�
 从 npm 全局安装正式发布的 CLI：
 
 ```bash
-bun install --global @deer-work-ai/workflow
+bun install --global @deerwork-ai/deer-workflow
 deer-workflow --help
 ```
 
@@ -85,12 +86,14 @@ deer-workflow create \
   > workflow.ts
 ```
 
-也可以把该 Skill 安装到任意支持 Agent Skills 的 Agent 中，再让该 Agent 创建
-Workflow：
+也可以安装内置 Skill，再让任意支持 Agent Skills 的 Agent 创建 Workflow：
 
 ```bash
-bunx skills add deerwork-ai/deer-workflow --skill workflow-creator
+deer-workflow skill install
 ```
+
+该命令会把 Skill 复制到已有的 `~/.agents/skills` 和 `~/.claude/skills` 目录，
+并报告实际安装或跳过的位置。
 
 ## 运行 Workflow
 

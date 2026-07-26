@@ -1,5 +1,5 @@
 {
-  "name": "@deer-work-ai/workflow",
+  "name": "@deerwork-ai/deer-workflow",
   "version": "0.0.1",
   "description": "An open-source Dynamic Workflow runtime for AI agents.",
   "type": "module",

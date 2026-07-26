@@ -4,6 +4,7 @@ import { agent, CodexAgentError } from "./agents";
 import { runCreateCommand } from "./cli/create";
 import { CliUsageError } from "./cli/errors";
 import { runWorkflowCommand } from "./cli/run";
+import { runSkillCommand } from "./cli/skill";
 
 const [command, ...values] = Bun.argv.slice(2);
 
@@ -16,6 +17,8 @@ try {
     await runCreateCommand(values);
   } else if (command === "run") {
     await runWorkflowCommand(values);
+  } else if (command === "skill") {
+    await runSkillCommand(values);
   } else if (command === undefined) {
     printUsage();
     process.exitCode = 1;
@@ -60,6 +63,7 @@ Usage:
   echo "Your task" | deer-workflow agent
   deer-workflow create "Describe the Workflow"
   echo "Describe the Workflow" | deer-workflow create
+  deer-workflow skill install
   deer-workflow run <workflow> [--input '<json>']
   deer-workflow run <workflow> [--input-file <path>]
   echo '<json>' | deer-workflow run <workflow>
@@ -67,6 +71,7 @@ Usage:
 Commands:
   agent   Run a task through the default Coding Agent
   create  Generate a Workflow with the bundled workflow-creator Skill
+  skill   Manage bundled Agent Skills
   run     Execute a Workflow module
 `);
 }

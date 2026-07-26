@@ -20,22 +20,22 @@ import {
   workflow,
   WorkflowEventEmitter,
   WorkflowRunner,
-} from "@deer-work-ai/workflow";
+} from "@deerwork-ai/deer-workflow";
 ```
 
 Equivalent focused subpath imports:
 
 ```typescript
-import { agent } from "@deer-work-ai/workflow/agents";
+import { agent } from "@deerwork-ai/deer-workflow/agents";
 import {
   parallel,
   phase,
   pipeline,
   workflow,
-} from "@deer-work-ai/workflow/flow";
-import { WorkflowEventEmitter } from "@deer-work-ai/workflow/events";
-import { log } from "@deer-work-ai/workflow/logging";
-import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
+} from "@deerwork-ai/deer-workflow/flow";
+import { WorkflowEventEmitter } from "@deerwork-ai/deer-workflow/events";
+import { log } from "@deerwork-ai/deer-workflow/logging";
+import { WorkflowRunner } from "@deerwork-ai/deer-workflow/runner";
 ```
 
 ## Workflow module contract
@@ -85,7 +85,7 @@ Workflow does not need to declare this parameter when it does not use it.
 
 ### Runtime context and imports
 
-Workflow APIs are imported explicitly from `@deer-work-ai/workflow`. The CLI does
+Workflow APIs are imported explicitly from `@deerwork-ai/deer-workflow`. The CLI does
 not inject `agent`, `parallel`, `pipeline`, `phase`, `workflow`, or `log` as
 globals. The Runner establishes the asynchronous execution context before
 calling the Handler, allowing those imported APIs to access the active Workflow
@@ -472,6 +472,18 @@ read it and its required references, then appends the user's prompt. Codex runs
 with a read-only sandbox and may run outside a Git repository. One enclosing
 Markdown source fence is removed, so stdout can be redirected directly to a
 `.ts` or `.js` file. The generated Workflow is not executed.
+
+Install the bundled Workflow Creator Skill for other Agents:
+
+```text
+deer-workflow skill install
+```
+
+`skill install` checks the existing `~/.agents/skills` and
+`~/.claude/skills` directories. It copies `workflow-creator` into each
+directory that exists, updates files from the bundled version when necessary,
+skips missing directories, and reports every destination. It does not create
+an Agent's parent Skill directory.
 
 Run a Workflow module:
 

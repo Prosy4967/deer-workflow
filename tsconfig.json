@@ -6,8 +6,8 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "@deer-work-ai/workflow": ["./src/index.ts"],
-      "@deer-work-ai/workflow/*": ["./src/*/index.ts"]
+      "@deerwork-ai/deer-workflow": ["./src/index.ts"],
+      "@deerwork-ai/deer-workflow/*": ["./src/*/index.ts"]
     },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,

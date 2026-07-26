@@ -42,7 +42,7 @@ Runtime 所需的 `codex` 可执行文件。检测不到命令时，Deer Workflo
 从 npm 全局安装正式发布的 CLI：
 
 ```bash
-bun install --global @deer-work-ai/workflow
+bun install --global @deerwork-ai/deer-workflow
 deer-workflow --help
 ```
 
@@ -59,7 +59,7 @@ Workflow 是一个导出 `default` 函数或 `run()` 函数的 TypeScript 模块
 
 ```typescript
 // workflows/research.ts
-import { agent, log, parallel, phase } from "@deer-work-ai/workflow";
+import { agent, log, parallel, phase } from "@deerwork-ai/deer-workflow";
 
 export const meta = {
   name: "topic-research",
@@ -117,6 +117,15 @@ deer-workflow create \
 Prompt，并把原始源码写入 stdout。它也支持从 stdin 读取 Prompt，但不会自动
 执行生成的 Workflow。
 
+如需从其他支持 Agent Skills 的 Agent 使用同一个 Skill，可安装包内置版本：
+
+```bash
+deer-workflow skill install
+```
+
+该命令会检查 `~/.agents/skills` 与 `~/.claude/skills`，把
+`workflow-creator` 复制到其中已有的目录，并报告每个实际安装或跳过的位置。
+
 ## 运行 Workflow
 
 从 Shell 启动 Workflow 时可以使用 CLI：
@@ -133,7 +142,7 @@ stdin，且两者不能同时使用。
 从宿主程序启动同一个 Workflow 时使用 `WorkflowRunner`：
 
 ```typescript
-import { WorkflowRunner } from "@deer-work-ai/workflow/runner";
+import { WorkflowRunner } from "@deerwork-ai/deer-workflow/runner";
 
 const runner = new WorkflowRunner();
 

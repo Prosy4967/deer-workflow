@@ -50,6 +50,15 @@ deer-workflow create "Describe the Workflow" > workflow.ts
 
 `create` generates the module but does not execute it.
 
+Install this bundled Skill for other Agents that support Agent Skills:
+
+```bash
+deer-workflow skill install
+```
+
+The command copies `workflow-creator` into existing `~/.agents/skills` and
+`~/.claude/skills` directories and reports installed or skipped destinations.
+
 ## Imports
 
 Prefer the package root for generated modules:
@@ -62,7 +71,7 @@ import {
   phase,
   pipeline,
   workflow,
-} from "@deer-work-ai/workflow";
+} from "@deerwork-ai/deer-workflow";
 ```
 
 Focused exports are also available from `/agents`, `/flow`, and `/logging`.
