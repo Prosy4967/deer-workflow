@@ -1,0 +1,23 @@
+{
+  "skill_name": "workflow-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a Deer Workflow in TypeScript for deep research. It should turn the topic into independent research angles, investigate them concurrently, verify each important claim with a separate Agent, and return one structured report.",
+      "expected_output": "A runnable module with explicit package imports, schema-backed planning and verification, safe parallel failure handling, phase transitions outside concurrent branches, and a default handler that receives input directly.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Write a workflow.ts that releases an Electron app: inspect the current version, decide the next version from changes, update the changelog, run checks, package the app, and review the artifacts. Steps that modify the same repository must not race.",
+      "expected_output": "A runnable module that uses a workspace-write Agent with an explicit cwd, keeps overlapping repository edits sequential, uses structured outputs where code branches, and does not invent worktree isolation or injected APIs.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Fix this old Dynamic Workflow signature for deer-workflow: export default async function ({ agent, parallel, phase, args, budget }) { phase('Audit'); return parallel(args.files.map(f => agent(`audit ${f}`))); }",
+      "expected_output": "A corrected module with explicit imports, a normal input parameter, zero-argument parallel thunks, no unsupported budget API, phase set before fan-out, and nullable result handling.",
+      "files": []
+    }
+  ]
+}
