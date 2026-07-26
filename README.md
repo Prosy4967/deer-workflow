@@ -65,8 +65,22 @@ deer-workflow run ./workflow.ts --input '{"question":"Your question"}'
 
 ### Examples
 
-- [Deep Research](./src/examples/deep-research/README.md)
-- [Blog Writer](./src/examples/blog-writer/README.md)
+Run [Deep Research](./src/examples/deep-research/README.md):
+
+```bash
+bun run dev -- run ./src/examples/deep-research/workflow.ts \
+  --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?"}'
+```
+
+Run [Blog Writer](./src/examples/blog-writer/README.md):
+
+```bash
+bun run dev -- run ./src/examples/blog-writer/workflow.ts \
+  --input '{"topic":"Dynamic Workflow","audience":"Agent builders"}'
+```
+
+After installing the package globally, replace `bun run dev --` with
+`deer-workflow`.
 
 ### Learn more
 

@@ -63,8 +63,21 @@ deer-workflow run ./workflow.ts --input '{"question":"你的问题"}'
 
 ### 示例
 
-- [Deep Research](./src/examples/deep-research/README.zh-CN.md)
-- [Blog Writer](./src/examples/blog-writer/README.zh-CN.md)
+运行 [Deep Research](./src/examples/deep-research/README.zh-CN.md)：
+
+```bash
+bun run dev -- run ./src/examples/deep-research/workflow.ts \
+  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
+```
+
+运行 [Blog Writer](./src/examples/blog-writer/README.zh-CN.md)：
+
+```bash
+bun run dev -- run ./src/examples/blog-writer/workflow.ts \
+  --input '{"topic":"Dynamic Workflow","audience":"Agent Builder"}'
+```
+
+全局安装包后，将命令开头的 `bun run dev --` 替换为 `deer-workflow` 即可。
 
 ### 深入了解
 
