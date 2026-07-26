@@ -79,6 +79,27 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Resolve nested Workflow paths relative to their parent module.
 - Keep Workflow nesting limited to one level unless the public contract changes.
 
+## Flow contract
+
+- `parallel()` starts every lazy task immediately, waits for all tasks to
+  settle, and preserves input order. A synchronous throw or rejected Promise
+  becomes `null` without cancelling sibling tasks.
+- `pipeline()` lets each item advance through its stages independently without
+  a global stage barrier. A failed item becomes `null`, skips its remaining
+  stages, and does not cancel sibling items. Preserve stage-to-stage type
+  inference for up to five stages.
+- The Flow primitives do not currently impose a concurrency or item-count
+  limit. Adding limits, queues, retries, fail-fast behavior, or cancellation
+  propagation is a public contract change.
+- Callers must handle nullable `parallel()` and `pipeline()` results explicitly
+  and decide whether partial completion is acceptable.
+- Workflow branches share one phase state. Set `phase()` before entering
+  `parallel()` or `pipeline()`; do not change the phase from concurrent tasks
+  or stages.
+- Repeating the active phase title is a no-op. Changing the title ends the
+  previous phase before starting the new one, and Workflow success or failure
+  ends any active phase.
+
 ## Commands
 
 ```bash
