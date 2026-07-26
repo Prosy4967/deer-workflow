@@ -7,6 +7,7 @@
 [快速入门](./docs/index.zh-CN.md) ·
 [API](./docs/api.zh-CN.md)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?logo=bun&logoColor=000000)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
 [![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
@@ -33,6 +34,7 @@ Agent Runtime。
   - [初始化开发环境](#初始化开发环境)
   - [验证修改](#验证修改)
   - [贡献 Agent 集成](#贡献-agent-集成)
+  - [许可证](#许可证)
 
 # 如何使用
 
@@ -149,3 +151,7 @@ bun run check
 
 Codex CLI 是默认 Agent Runtime，但不是架构上的硬依赖。欢迎贡献其他 Coding
 Agent 集成。
+
+## 许可证
+
+本项目采用 [MIT 许可证](./LICENSE)。
