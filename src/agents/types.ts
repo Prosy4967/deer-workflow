@@ -1,0 +1,147 @@
+/**
+ * A scalar value that can be represented directly in JSON.
+ */
+export type JsonPrimitive = boolean | number | string | null;
+
+/**
+ * Any recursively serializable JSON value.
+ */
+export type JsonValue =
+  | JsonPrimitive
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+/**
+ * A JSON Schema document passed to an Agent runtime to constrain its final
+ * response.
+ *
+ * @remarks
+ * The runtime is responsible for enforcing the schema. Deer Workflow only
+ * transports the schema and parses the validated response.
+ */
+export type JsonSchema = {
+  [key: string]: JsonValue;
+};
+
+/**
+ * Filesystem and command-execution isolation available to an Agent.
+ */
+export type AgentSandbox =
+  | "read-only"
+  | "workspace-write"
+  | "danger-full-access";
+
+/**
+ * Options shared by all Agent runtime implementations.
+ */
+export interface AgentOptions {
+  /** Working directory presented to the Agent. */
+  cwd?: string;
+
+  /** Runtime-specific model identifier. */
+  model?: string;
+
+  /** JSON Schema that constrains and types the final response. */
+  schema?: JsonSchema;
+
+  /** Sandbox policy applied to tools used by the Agent. */
+  sandbox?: AgentSandbox;
+
+  /** Extra directories the Agent may write outside {@link AgentOptions.cwd}. */
+  additionalWritableDirectories?: string[];
+
+  /** Environment variables merged into the Agent process environment. */
+  env?: Record<string, string | undefined>;
+
+  /** Signal used to cancel the complete Agent run. */
+  signal?: AbortSignal;
+}
+
+/**
+ * Vendor-neutral contract for a complete tool-using Agent Loop.
+ */
+export interface Agent {
+  /**
+   * Runs an Agent until it produces a final response.
+   *
+   * @typeParam TOutput - Expected final response type. Use an object type when
+   * {@link AgentOptions.schema} is provided; otherwise it defaults to text.
+   * @param prompt - Task instructions for the Agent.
+   * @param options - Runtime, output, and cancellation options.
+   * @returns The final text or parsed schema-backed response.
+   */
+  run<TOutput = string>(
+    prompt: string,
+    options?: AgentOptions,
+  ): Promise<TOutput>;
+}
+
+/**
+ * Callable form of {@link Agent.run}.
+ *
+ * @typeParam TOutput - Expected final response type.
+ */
+export type AgentFunction = <TOutput = string>(
+  prompt: string,
+  options?: AgentOptions,
+) => Promise<TOutput>;
+
+/**
+ * Construction options for {@link CodexAgent}.
+ */
+export interface CodexAgentConfig {
+  /** Codex executable name or absolute path. Defaults to `codex`. */
+  command?: string;
+
+  /** Arguments inserted between the executable and `codex exec`. */
+  commandArgs?: string[];
+
+  /** Default working directory for Agent runs. */
+  cwd?: string;
+
+  /** Default Codex model identifier. */
+  model?: string;
+
+  /** Default Codex sandbox policy. */
+  sandbox?: AgentSandbox;
+
+  /** Whether Codex should avoid persisting session files. Defaults to `true`. */
+  ephemeral?: boolean;
+
+  /** Whether Codex may run outside a Git repository. */
+  skipGitRepositoryCheck?: boolean;
+
+  /** Additional raw arguments inserted before the prompt placeholder. */
+  extraArgs?: string[];
+
+  /** Environment variables applied to every Codex process. */
+  env?: Record<string, string | undefined>;
+}
+
+/**
+ * Fully normalized Codex Agent configuration.
+ *
+ * @internal
+ */
+export interface ResolvedCodexAgentConfig {
+  command: string;
+  commandArgs: string[];
+  cwd?: string;
+  model?: string;
+  sandbox?: AgentSandbox;
+  ephemeral: boolean;
+  skipGitRepositoryCheck: boolean;
+  extraArgs: string[];
+  env?: Record<string, string | undefined>;
+}
+
+/**
+ * Captured process details used to construct a {@link CodexAgentError}.
+ *
+ * @internal
+ */
+export interface CodexAgentErrorDetails {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}
