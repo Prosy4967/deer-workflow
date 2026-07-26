@@ -11,6 +11,34 @@ import type {
 } from "./types";
 
 /**
+ * Error raised when the configured Codex CLI executable is unavailable.
+ */
+export class CodexCliNotFoundError extends Error {
+  /** Executable name or path that could not be resolved. */
+  readonly command: string;
+
+  /**
+   * Creates an actionable Codex CLI installation error.
+   *
+   * @param command - Executable name or path that was not found.
+   */
+  constructor(command: string) {
+    super(`Codex CLI command "${command}" was not found.
+
+Install Codex CLI:
+  npm install -g @openai/codex
+  codex login
+  codex --version
+
+Codex CLI and Codex Desktop are separate installations. Installing Codex Desktop does not install the \`codex\` terminal command.
+
+Installation guide: https://help.openai.com/en/articles/11096431`);
+    this.name = "CodexCliNotFoundError";
+    this.command = command;
+  }
+}
+
+/**
  * Error raised when Codex CLI cannot complete an Agent run or return the
  * requested structured output.
  */
@@ -95,6 +123,7 @@ export class CodexAgent implements Agent {
     }
 
     options.signal?.throwIfAborted();
+    this.#assertCommandAvailable();
 
     const temporaryDirectory = await mkdtemp(
       join(tmpdir(), "deer-workflow-codex-"),
@@ -170,6 +199,12 @@ export class CodexAgent implements Agent {
       }
     } finally {
       await rm(temporaryDirectory, { recursive: true, force: true });
+    }
+  }
+
+  #assertCommandAvailable(): void {
+    if (Bun.which(this.#config.command) === null) {
+      throw new CodexCliNotFoundError(this.#config.command);
     }
   }
 

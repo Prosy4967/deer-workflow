@@ -3,7 +3,11 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { CodexAgent, CodexAgentError } from "@deer-flow/workflow/agents";
+import {
+  CodexAgent,
+  CodexAgentError,
+  CodexCliNotFoundError,
+} from "@deer-flow/workflow/agents";
 
 let temporaryDirectory: string;
 let stubPath: string;
@@ -89,6 +93,26 @@ describe("CodexAgent", () => {
       expect(error).toBeInstanceOf(CodexAgentError);
       expect((error as CodexAgentError).exitCode).toBe(7);
       expect((error as CodexAgentError).stderr).toContain("mock failure");
+    }
+  });
+
+  test("explains how to install Codex CLI when the command is missing", async () => {
+    const runtime = new CodexAgent({
+      command: "deer-workflow-missing-codex-command",
+    });
+
+    try {
+      await runtime.run("inspect");
+      throw new Error("Expected the Codex CLI lookup to fail.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(CodexCliNotFoundError);
+      expect((error as Error).message).toContain(
+        "npm install -g @openai/codex",
+      );
+      expect((error as Error).message).toContain("codex login");
+      expect((error as Error).message).toContain(
+        "Codex CLI and Codex Desktop are separate installations",
+      );
     }
   });
 });

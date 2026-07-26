@@ -1,43 +1,52 @@
 #!/usr/bin/env bun
 
 import { agent, CodexAgentError } from "./agents";
+import { CliUsageError } from "./cli/errors";
+import { runWorkflowCommand } from "./cli/run";
 
 const [command, ...values] = Bun.argv.slice(2);
 
-if (command === "--help" || command === "-h" || command === undefined) {
-  printUsage();
-  process.exit(command === undefined ? 1 : 0);
-}
-
-if (command !== "agent") {
-  console.error(`Unknown command: ${command}`);
-  printUsage();
-  process.exit(1);
-}
-
-const argumentPrompt = values.join(" ").trim();
-const prompt =
-  argumentPrompt ||
-  (process.stdin.isTTY ? "" : (await Bun.stdin.text()).trim());
-
-if (!prompt) {
-  console.error("The agent command requires a prompt argument or stdin.");
-  process.exit(1);
-}
-
 try {
-  const output = await agent(prompt, { cwd: process.cwd() });
-  console.log(output);
+  if (command === "--help" || command === "-h") {
+    printUsage();
+  } else if (command === "agent") {
+    await runAgentCommand(values);
+  } else if (command === "run") {
+    await runWorkflowCommand(values);
+  } else if (command === undefined) {
+    printUsage();
+    process.exitCode = 1;
+  } else {
+    throw new CliUsageError(`Unknown command: ${command}`);
+  }
 } catch (error) {
   if (error instanceof CodexAgentError) {
     console.error(error.message);
     if (error.stderr.trim()) {
       console.error(error.stderr.trimEnd());
     }
+  } else if (error instanceof Error) {
+    console.error(error.message);
   } else {
-    console.error(error);
+    console.error(String(error));
   }
-  process.exit(1);
+  process.exitCode = 1;
+}
+
+async function runAgentCommand(values: readonly string[]): Promise<void> {
+  const argumentPrompt = values.join(" ").trim();
+  const prompt =
+    argumentPrompt ||
+    (process.stdin.isTTY ? "" : (await Bun.stdin.text()).trim());
+
+  if (!prompt) {
+    throw new CliUsageError(
+      "The agent command requires a prompt argument or stdin.",
+    );
+  }
+
+  const output = await agent(prompt, { cwd: process.cwd() });
+  console.log(output);
 }
 
 function printUsage(): void {
@@ -46,5 +55,12 @@ function printUsage(): void {
 Usage:
   deer-workflow agent "Your task"
   echo "Your task" | deer-workflow agent
+  deer-workflow run <workflow> [--input '<json>']
+  deer-workflow run <workflow> [--input-file <path>]
+  echo '<json>' | deer-workflow run <workflow>
+
+Commands:
+  agent  Run a task through the default Coding Agent
+  run    Execute a Workflow module
 `);
 }

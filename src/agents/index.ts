@@ -11,7 +11,11 @@ export type {
   JsonSchema,
   JsonValue,
 } from "./types";
-export { CodexAgent, CodexAgentError } from "./codex-agent";
+export {
+  CodexAgent,
+  CodexAgentError,
+  CodexCliNotFoundError,
+} from "./codex-agent";
 
 /**
  * Shared default Agent runtime backed by Codex CLI.
