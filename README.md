@@ -44,6 +44,9 @@ named `deer-workflow`.
 Install [Bun](https://bun.sh) and
 [Codex CLI](https://github.com/openai/codex), then sign in:
 
+[Bun](https://bun.sh) is a fast, Node.js-compatible JavaScript runtime and
+toolkit; see its [installation guide](https://bun.sh/docs/installation).
+
 ```bash
 npm install -g @openai/codex
 codex login

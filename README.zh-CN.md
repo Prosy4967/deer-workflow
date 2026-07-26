@@ -43,6 +43,9 @@ Agent Runtime。
 安装 [Bun](https://bun.sh) 和
 [Codex CLI](https://github.com/openai/codex)，然后登录：
 
+[Bun](https://bun.sh) 是快速、兼容 Node.js 的 JavaScript Runtime 和工具链；
+安装方式参见[官方指南](https://bun.sh/docs/installation)。
+
 ```bash
 npm install -g @openai/codex
 codex login
