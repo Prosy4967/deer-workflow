@@ -233,8 +233,13 @@ and the corresponding table in both language variants of `docs/index.md`.
 - Organize each root README into two level-one reader paths: how to use the CLI
   and how to develop or contribute to the repository. Keep a two-level index
   that links each path and its level-two sections.
-- Keep `skills/workflow-creator/references/api.md` synchronized with the public
-  runtime contract whenever an API or CLI behavior changes.
+- Whenever a public API, event, Workflow, Agent, Runner, or CLI behavior
+  changes, update its tests, `docs/api.md`, `docs/api.zh-CN.md`, and
+  `skills/workflow-creator/references/api.md` in the same change.
+- Also update `skills/workflow-creator/SKILL.md`,
+  `skills/workflow-creator/references/patterns.md`, and
+  `skills/workflow-creator/assets/workflow.ts` when a contract change affects
+  generated Workflow guidance or templates.
 - Add `Co-authored-by: Codex <codex@openai.com>` to commits containing changes
   materially authored with Codex, unless the user requests otherwise.
 - Document every public API with TypeDoc comments, including parameters,
