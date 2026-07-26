@@ -1,0 +1,38 @@
+{
+  "name": "deer-workflow",
+  "version": "0.0.1",
+  "description": "An open-source Dynamic Workflow runtime for AI agents.",
+  "type": "module",
+  "bin": {
+    "deer-workflow": "./src/cli.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./agents": "./src/agents/index.ts",
+    "./events": "./src/events/index.ts",
+    "./flow": "./src/flow/index.ts",
+    "./logging": "./src/logging/index.ts",
+    "./runner": "./src/runner/index.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/cli.ts",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit",
+    "check": "bun run typecheck && bun test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deer-flow/deer-workflow.git"
+  },
+  "keywords": [
+    "agent",
+    "codex",
+    "dynamic-workflow",
+    "workflow"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "latest"
+  }
+}
