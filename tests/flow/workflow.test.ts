@@ -18,6 +18,8 @@ let rootWorkflowPath: string;
 let parentWorkflowPath: string;
 let nestedParentWorkflowPath: string;
 let invalidWorkflowPath: string;
+let invalidMetaWorkflowPath: string;
+let invalidExampleArgsWorkflowPath: string;
 
 beforeAll(async () => {
   temporaryDirectory = await mkdtemp(
@@ -110,6 +112,38 @@ export default function run() {
 
   invalidWorkflowPath = join(temporaryDirectory, "invalid.ts");
   await writeFile(invalidWorkflowPath, "export const value = 42;\n", "utf8");
+
+  invalidMetaWorkflowPath = join(temporaryDirectory, "invalid-meta.ts");
+  await writeFile(
+    invalidMetaWorkflowPath,
+    `
+export const meta = {
+  name: "Invalid Name",
+  description: "Invalid metadata.",
+  phases: [{ title: "Run" }],
+};
+export default () => "never";
+`,
+    "utf8",
+  );
+
+  invalidExampleArgsWorkflowPath = join(
+    temporaryDirectory,
+    "invalid-example-args.ts",
+  );
+  await writeFile(
+    invalidExampleArgsWorkflowPath,
+    `
+export const meta = {
+  name: "invalid-example",
+  description: "Contains invalid example args.",
+  phases: [{ title: "Run" }],
+  exampleArgs: { callback: () => "invalid" },
+};
+export default () => "never";
+`,
+    "utf8",
+  );
 });
 
 afterAll(async () => {
@@ -159,6 +193,18 @@ describe("workflow", () => {
   test("requires a default or named run export", async () => {
     expect(workflow(invalidWorkflowPath)).rejects.toBeInstanceOf(
       WorkflowLoadError,
+    );
+  });
+
+  test("validates metadata before invoking the handler", async () => {
+    expect(workflow(invalidMetaWorkflowPath)).rejects.toThrow(
+      "meta.name must be kebab-case",
+    );
+  });
+
+  test("requires JSON-safe example args", async () => {
+    expect(workflow(invalidExampleArgsWorkflowPath)).rejects.toThrow(
+      "meta.exampleArgs must contain only JSON-safe values",
     );
   });
 });

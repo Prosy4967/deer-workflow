@@ -15,6 +15,18 @@ deer-workflow run ./examples/blog-writer/workflow.ts \
   --input '{"topic":"为什么 Dynamic Workflow 可以与 Agent Skills 共生","audience":"Agent Builder"}'
 ```
 
+服务端及 CI/CD、任务队列、进程管道等自动化流程应使用 `--print` 或 `-p`，
+让 stdout 输出 JSONL Event Stream：
+
+```bash
+deer-workflow run ./examples/blog-writer/workflow.ts -p \
+  --input '{"topic":"为什么 Dynamic Workflow 可以与 Agent Skills 共生","audience":"Agent Builder"}' \
+  > blog-events.jsonl
+```
+
+Print Mode 会禁用 TUI 并抑制单独的文章返回值，保证 stdout 每行都是一个
+Workflow 事件；CLI 诊断仍写入 stderr。
+
 也可以通过 `WorkflowRunner` 在程序中运行：
 
 ```typescript

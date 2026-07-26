@@ -51,6 +51,7 @@ export const meta = {
   name: "workflow-name",
   description: "One-line description.",
   phases: [{ title: "Plan" }, { title: "Execute" }],
+  exampleArgs: { topic: "A realistic example topic" },
 };
 ```
 
@@ -58,10 +59,13 @@ export const meta = {
 - `description` 是一行 Workflow 简介。
 - `phases` 是按执行顺序排列的 `{ title }` 列表，其标题应与 Workflow 中的
   `phase()` 调用完全一致。
+- `exampleArgs` 是可选的 JSON-safe 对象，键名对应 Handler 实际读取的 `args`
+  属性，并提供一个最小可运行示例。
 
 `meta` 必须能被静态读取：只使用字面量、数组和对象，不要使用变量、函数调用、
-spread、计算属性或模板字符串。`meta` 目前是面向未来的编写契约：Runner 允许
-存在该导出，但尚不会读取、校验它，也不会将其写入事件。
+spread、计算属性或模板字符串。运行时会在模块加载后校验存在的 `meta`，并在
+调用 Handler 前通过 `workflow:meta` 事件发送。名称必须是 kebab-case，描述
+必须是非空单行文本，phase 标题必须非空且唯一。为保持向后兼容，`meta` 仍可省略。
 
 ### Handler 参数
 
@@ -330,7 +334,8 @@ function log(message: string): void;
 
 发送一条进度消息。直接使用时默认写入 stderr；在
 `WorkflowRunner.run()` 内调用时会转换成 `log` 事件并交给 Runner 的 JSON
-Writer。
+Writer。消息可以包含 Markdown。JSONL 消费者会收到原始 Markdown 字符串；
+交互式 CLI TUI 会渲染标题、强调、行内代码、链接、引用、列表和围栏代码块。
 
 ### `withLogSink()`
 
@@ -351,6 +356,7 @@ function withLogSink<TOutput>(
 ```typescript
 type WorkflowEventType =
   | "workflow:start"
+  | "workflow:meta"
   | "workflow:end"
   | "workflow:error"
   | "workflow:phase:start"
@@ -379,6 +385,7 @@ interface WorkflowEventEnvelope {
 | Event                  | Additional fields           |
 | ---------------------- | --------------------------- |
 | `workflow:start`       | 无                          |
+| `workflow:meta`        | `meta`                      |
 | `workflow:end`         | `durationMs`                |
 | `workflow:error`       | `durationMs`, `error`       |
 | `workflow:phase:start` | `phase`                     |
@@ -441,7 +448,8 @@ echo "Inspect this repository" | deer-workflow agent
 ```
 
 Agent 的最终响应写入 stdout。用法错误和 Agent 错误写入 stderr，并返回非零
-退出码。
+退出码。在交互式终端中，该命令使用与 `create`、`run` 相同的无限任务 TUI，
+包括预估耗时与实时已用时间。
 
 通过内置 Workflow Creator Skill 生成 Workflow：
 
@@ -453,7 +461,16 @@ echo "Describe the Workflow" | deer-workflow create
 `create` 从已安装的包中定位内置 Skill，让 Codex 读取它及其要求的 references，
 然后追加用户 Prompt。Codex 使用只读 Sandbox，并允许在 Git 仓库外运行。命令
 会移除包裹完整响应的一层 Markdown 源码围栏，因此 stdout 可以直接重定向到
-`.ts` 或 `.js` 文件。生成的 Workflow 不会自动执行。
+`.ts` 或 `.js` 文件。生成开始前，stdout 会先写入
+`/* Generating a DeerFlow Dynamic Workflow with Codex */`，因此重定向目标会
+立即成为非空且有效的源码文件。生成的 Workflow 不会自动执行。
+
+当 stderr 连接交互式终端时，`create` 会说明 Codex 生成通常需要 1–5 分钟，
+并持续显示带已用时间的无限 loading 动画，直到生成完成；随后给出可复制的
+下一步示例，例如
+`deer-workflow run ./workflow.ts --input '{"topic":"..."}'`；参数来自生成
+Workflow 的示例 args。stderr 被重定向时不会启用动画，因此生成源码和脚本
+输出保持不变。
 
 为其他 Agent 安装内置 Workflow Creator Skill：
 
@@ -469,6 +486,7 @@ deer-workflow skill install
 
 ```text
 deer-workflow run <workflow>
+deer-workflow run <workflow> --print
 deer-workflow run <workflow> --input '<json>'
 deer-workflow run <workflow> --input-file <path>
 echo '<json>' | deer-workflow run <workflow>
@@ -478,8 +496,27 @@ echo '<json>' | deer-workflow run <workflow>
 `--input`、`--input-file`、非空 stdin；显式参数优先于 stdin。JSON 无法解析、
 Workflow 无法加载或执行失败时，命令返回非零退出码。
 
-CLI 会创建 `WorkflowRunner`，并把 JSONL 事件写入 stderr。字符串结果直接写入
-stdout，其他可 JSON 序列化的值写成紧凑 JSON，返回 `undefined` 时不输出结果行。
+`--print`（短参数 `-p`）会禁用 TUI，并立即把每个 Workflow 事件作为一行紧凑
+JSON 写入 stdout。该模式不再单独输出 Workflow 返回值，保证 stdout 是纯净的
+JSONL Event Stream；stderr 仅用于 CLI 诊断。服务端、CI/CD、任务队列、进程
+管道、自动化 Runner 和事件采集器都应优先使用该模式：
+
+```text
+deer-workflow run ./workflow.ts -p --input '{"topic":"..."}' > events.jsonl
+```
+
+CLI 会创建 `WorkflowRunner`。非 Print Mode 下，stderr 被重定向时，每个事件
+都以 JSONL 写入；在交互式终端中，事件改为驱动响应式 TUI：左栏显示
+`meta.phases` 声明的阶段，并标注等待、运行中、已完成或失败；右栏滚动显示
+渲染后的 Markdown 日志。顶部会显示 `meta.name`、Workflow 模块路径和当前
+工作目录。活动 phase 除 spinner 外还会在标题上循环扫过亮点；已完成、等待和
+失败阶段保持静态。窄终端会切换为上下布局。非 Print Mode 下，字符串结果直接
+写入 stdout，其他可 JSON 序列化的值写成紧凑 JSON，返回 `undefined` 时不输出
+结果行。
+
+共享 TUI 仅在 stderr 为交互式终端且 `TERM` 不是 `dumb` 时启用。设置
+`NO_COLOR` 会关闭颜色但保留动画；CLI 输出最终结果或错误详情前，TUI 会自动
+切换为成功或失败状态。所有长耗时命令统一使用 `🦌 Deer Workflow` 标题。
 
 ### `WorkflowRunner`
 
@@ -500,9 +537,9 @@ class WorkflowRunner {
 ```
 
 运行 Workflow，并把生命周期、阶段和日志转换为统一事件流。独立使用 Runner
-时，默认将每个事件作为一行 JSON 输出到 stdout；CLI 会改用 stderr Writer。
-同一个 Runner 可以被复用或用于并发执行，所有运行共享一个递增事件序列，
-异步上下文保持隔离。
+时，默认将每个事件作为一行 JSON 输出到 stdout；CLI 默认改用 stderr Writer，
+而 `--print` / `-p` 模式使用 stdout Writer。同一个 Runner 可以被复用或用于
+并发执行，所有运行共享一个递增事件序列，异步上下文保持隔离。
 
 ```typescript
 interface WorkflowRunnerOptions {
@@ -516,7 +553,9 @@ Listener。释放后的 Runner 不能启动新的 Workflow。
 
 ## 示例
 
-- [Deep Research](../examples/deep-research/README.zh-CN.md)：组合使用
-  `agent()`、`phase()`、`parallel()`、`log()` 和 `WorkflowRunner`。
+- [Deep Research](../examples/deep-research/README.zh-CN.md)：在规划前先执行
+  探索搜索，再组合使用 `agent()`、`phase()`、`parallel()`、`log()` 和
+  `WorkflowRunner`；Planner 会提出文件名，原子编号后缀会保护已有报告，最后的
+  Present 阶段通过操作系统打开生成的 HTML 文件。
 - [Blog Writer](../examples/blog-writer/README.zh-CN.md)：组合使用
   `agent()`、`phase()`、`pipeline()`、`log()` 和 `WorkflowRunner`。

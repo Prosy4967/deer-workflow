@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { WorkflowRunner } from "../runner";
+import { TerminalUI } from "../tui";
 import { CliUsageError } from "./errors";
 import type { RunCommandArguments } from "./types";
 
@@ -9,8 +10,9 @@ import type { RunCommandArguments } from "./types";
  * Executes the `deer-workflow run` command.
  *
  * @remarks
- * Workflow events are written as JSON Lines to stderr. The final Workflow
- * result is written to stdout so shell pipelines can consume it independently.
+ * By default, Workflow events are written as JSON Lines to stderr and the
+ * final Workflow result is written to stdout. Print mode writes only the
+ * Workflow Event Stream to stdout as JSONL and suppresses the separate result.
  *
  * @param values - Arguments following the `run` command.
  * @returns A Promise that resolves after the Workflow completes.
@@ -26,15 +28,39 @@ export async function runWorkflowCommand(
 
   const arguments_ = parseRunArguments(values);
   const input = await readRunInput(arguments_);
+  const task = arguments_.print
+    ? undefined
+    : new TerminalUI().startWorkflowTask({
+        workingDirectory: process.cwd(),
+        activity: "Running the Workflow",
+        estimate: "Usually takes a few seconds to several minutes",
+        successMessage: "Workflow completed",
+        failureMessage: "Workflow failed",
+      });
   const runner = new WorkflowRunner({
-    logWriter: (line) => console.error(line),
+    logWriter: arguments_.print
+      ? (line) => process.stdout.write(`${line}\n`)
+      : (line) => task?.writeLine(line),
   });
+  const removeTuiPresenter =
+    task === undefined
+      ? () => {}
+      : runner.on((event) => task.handleEvent(event));
 
   try {
     const result = await runner.run(arguments_.scriptPath, input);
-    writeResult(result);
+    if (!arguments_.print) {
+      const preparedResult = prepareResult(result);
+      task?.succeed();
+      writeResult(preparedResult);
+    }
+  } catch (error) {
+    task?.fail();
+    throw error;
   } finally {
+    removeTuiPresenter();
     runner.dispose();
+    task?.dispose();
   }
 }
 
@@ -46,13 +72,16 @@ export async function runWorkflowCommand(
 export function printRunUsage(): void {
   console.log(`Usage:
   deer-workflow run <workflow>
+  deer-workflow run <workflow> --print
   deer-workflow run <workflow> --input '<json>'
   deer-workflow run <workflow> --input-file <path>
   echo '<json>' | deer-workflow run <workflow>
 
 Output:
-  stdout  Final Workflow result
-  stderr  Workflow events as JSON Lines
+  default       stdout: final result; stderr: events or interactive TUI
+  --print, -p   Server and automation mode
+                stdout: one JSON Workflow event per line; no separate result
+                stderr: CLI diagnostics only
 `);
 }
 
@@ -60,9 +89,15 @@ function parseRunArguments(values: readonly string[]): RunCommandArguments {
   let scriptPath: string | undefined;
   let inlineInput: string | undefined;
   let inputFile: string | undefined;
+  let print = false;
 
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
+
+    if (value === "--print" || value === "-p") {
+      print = true;
+      continue;
+    }
 
     if (value === "--input" || value === "--input-file") {
       const optionValue = values[index + 1];
@@ -104,6 +139,7 @@ function parseRunArguments(values: readonly string[]): RunCommandArguments {
 
   return {
     scriptPath,
+    print,
     ...(inlineInput === undefined ? {} : { inlineInput }),
     ...(inputFile === undefined ? {} : { inputFile }),
   };
@@ -149,23 +185,34 @@ function parseJsonInput(contents: string, source: string): unknown {
   }
 }
 
-function writeResult(result: unknown): void {
+function prepareResult(result: unknown): {
+  readonly shouldWrite: boolean;
+  readonly value?: string;
+} {
   if (result === undefined) {
-    return;
+    return { shouldWrite: false };
   }
 
   if (typeof result === "string") {
-    console.log(result);
-    return;
+    return { shouldWrite: true, value: result };
   }
 
   try {
-    console.log(JSON.stringify(result));
+    return { shouldWrite: true, value: JSON.stringify(result) };
   } catch (cause) {
     throw new Error(
       `Unable to serialize Workflow result: ${formatCause(cause)}`,
       { cause },
     );
+  }
+}
+
+function writeResult(result: {
+  readonly shouldWrite: boolean;
+  readonly value?: string;
+}): void {
+  if (result.shouldWrite) {
+    console.log(result.value);
   }
 }
 

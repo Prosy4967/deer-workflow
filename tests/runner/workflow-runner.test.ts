@@ -27,6 +27,13 @@ beforeAll(async () => {
 import { phase } from ${JSON.stringify(flowModuleUrl)};
 import { log } from ${JSON.stringify(loggingModuleUrl)};
 
+export const meta = {
+  name: "successful",
+  description: "Runs research and synthesis.",
+  phases: [{ title: "Research" }, { title: "Synthesis" }],
+  exampleArgs: { topic: "Agent runtimes" },
+};
+
 export default function run() {
   phase("Research");
   log("Collecting sources");
@@ -75,6 +82,7 @@ describe("WorkflowRunner", () => {
     expect(result).toBe("done");
     expect(events.map((event) => event.type)).toEqual([
       "workflow:start",
+      "workflow:meta",
       "workflow:phase:start",
       "log",
       "workflow:phase:end",
@@ -84,11 +92,22 @@ describe("WorkflowRunner", () => {
       "workflow:end",
     ]);
     expect(events.map((event) => event.sequence)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8,
+      1, 2, 3, 4, 5, 6, 7, 8, 9,
     ]);
     expect(new Set(events.map((event) => event.workflowId)).size).toBe(1);
 
-    const firstLog = events[2];
+    const metadata = events[1];
+    expect(metadata?.type).toBe("workflow:meta");
+    if (metadata?.type === "workflow:meta") {
+      expect(metadata.meta.name).toBe("successful");
+      expect(metadata.meta.phases.map((phase) => phase.title)).toEqual([
+        "Research",
+        "Synthesis",
+      ]);
+      expect(metadata.meta.exampleArgs).toEqual({ topic: "Agent runtimes" });
+    }
+
+    const firstLog = events[3];
     expect(firstLog?.type).toBe("log");
     if (firstLog?.type === "log") {
       expect(firstLog.phase).toBe("Research");

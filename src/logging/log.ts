@@ -11,9 +11,11 @@ const defaultLogSink: LogSink = (message) => {
  * @remarks
  * The default sink writes to stderr so logs do not corrupt structured results
  * written to stdout. Use {@link withLogSink} to route messages to a Workflow
- * progress UI, Journal, test collector, or another destination.
+ * progress UI, Journal, test collector, or another destination. Messages may
+ * contain Markdown; the interactive CLI renders a practical terminal-safe
+ * subset while event consumers receive the original string.
  *
- * @param message - Human-readable progress message.
+ * @param message - Human-readable progress message, optionally as Markdown.
  * @throws TypeError When `message` is empty or contains only whitespace.
  *
  * @example

@@ -27,9 +27,16 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   having installed `workflow-creator` in a Codex Skill search directory.
 - Run the create Agent with a read-only sandbox and allow execution outside a
   Git repository. Strip one enclosing Markdown source fence before writing
-  stdout so shell redirection produces a runnable source file.
-- Route CLI Workflow events to stderr as JSON Lines and the final result to
-  stdout.
+  stdout so shell redirection produces a runnable source file. Before starting
+  the Agent, write
+  `/* Generating a DeerFlow Dynamic Workflow with Codex */` to stdout so a
+  redirected target is immediately non-empty.
+- Route CLI Workflow events to stderr as JSON Lines when stderr is redirected.
+  In an interactive terminal, drive the run TUI from typed events instead.
+  Keep the final result on stdout in both default modes. With `run --print` or
+  `run -p`, disable the TUI, write one JSON event per stdout line, reserve
+  stderr for CLI diagnostics, and suppress the separate final result. Present
+  Print Mode as the recommended interface for servers and automation.
 - Resolve optional run input in this order: `--input`, `--input-file`, then
   non-empty stdin. Reject simultaneous `--input` and `--input-file`; explicit
   options take precedence over stdin.
@@ -60,15 +67,21 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Keep Runner implementations in `src/runner/` and tests in `tests/runner/`.
 - Write `log()` messages directly to stderr when no Log Sink is active.
 - Emit Runner events as JSON Lines. A standalone Runner's default `logWriter`
-  calls `console.log` once per event, while the CLI supplies a writer that uses
-  stderr so stdout remains reserved for the final result.
+  calls `console.log` once per event, while the CLI sends redirected events to
+  stderr and uses typed events for its interactive TUI so stdout remains
+  reserved for the final result.
 - Keep Workflow arguments and results out of events by default. Event payloads
   must remain JSON-safe and suitable for external process boundaries.
 - Workflow modules export a handler as either `default` or `run`.
 - Workflow Creator output also exports a pure-literal `meta` object with a
-  kebab-case `name`, one-line `description`, and `phases` whose titles exactly
-  match `phase()` calls. The current Runner ignores this export; do not claim
-  metadata is emitted or consumed until runtime support is implemented.
+  kebab-case `name`, one-line `description`, and unique `phases` whose titles
+  exactly match `phase()` calls, plus JSON-safe `exampleArgs` whose keys match
+  Handler `args` properties. The Runner validates this export and emits
+  `workflow:meta`; the interactive CLI uses its phase plan in the run TUI, and
+  `create` uses the example args in its next command.
+- The interactive run TUI identifies the Workflow name, module path, and
+  working directory. It displays metadata phases beside Markdown logs and uses
+  a looping highlight sweep only on the active phase.
 - Name the Handler's first caller-input parameter `args`. It is an ordinary
   function parameter, not a JavaScript global.
 - Workflow modules import APIs explicitly from `@deerwork-ai/deer-workflow` or its
@@ -108,10 +121,10 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - When a Workflow module exports both `default` and `run`, prefer `default`.
   Emit `workflow:start` before loading the module, and emit exactly one
   terminal `workflow:end` or `workflow:error` event after execution begins.
-- Preserve the event protocol types: `workflow:start`, `workflow:end`,
-  `workflow:error`, `workflow:phase:start`, `workflow:phase:end`, and `log`.
-  Keep their existing context, duration, phase, message, and serialized error
-  fields compatible.
+- Preserve the event protocol types: `workflow:start`, `workflow:meta`,
+  `workflow:end`, `workflow:error`, `workflow:phase:start`,
+  `workflow:phase:end`, and `log`. Keep their existing context, metadata,
+  duration, phase, message, and serialized error fields compatible.
 - `WorkflowEventEmitter` invokes listeners synchronously in subscription order.
   Each Emitter assigns its own monotonically increasing sequence and ISO-8601
   timestamp, and freezes the completed event object before delivery.

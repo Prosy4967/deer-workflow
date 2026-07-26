@@ -16,6 +16,7 @@ export type {
   WorkflowEventListener,
   WorkflowEventType,
   WorkflowLogEventInput,
+  WorkflowMetaEventInput,
   WorkflowPhaseEndEventInput,
   WorkflowPhaseStartEventInput,
   WorkflowStartEventInput,

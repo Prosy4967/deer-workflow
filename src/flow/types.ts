@@ -91,6 +91,43 @@ export interface WorkflowReference {
 export type WorkflowTarget = string | WorkflowReference;
 
 /**
+ * One declared phase in a Workflow's static metadata.
+ */
+export interface WorkflowPhaseMeta {
+  /** Phase title, exactly matching the corresponding `phase()` call. */
+  readonly title: string;
+}
+
+/**
+ * JSON-safe value used by a Workflow's example caller arguments.
+ */
+export type WorkflowExampleValue =
+  | boolean
+  | number
+  | string
+  | null
+  | readonly WorkflowExampleValue[]
+  | { readonly [key: string]: WorkflowExampleValue };
+
+/**
+ * Static identity and phase plan exported by a Workflow module.
+ *
+ * @remarks
+ * The CLI uses this metadata to build its interactive execution view. A
+ * Workflow may omit metadata for backward compatibility.
+ */
+export interface WorkflowMeta {
+  /** Kebab-case Workflow identifier. */
+  readonly name: string;
+  /** Concise one-line description. */
+  readonly description: string;
+  /** Ordered phase plan. */
+  readonly phases: readonly WorkflowPhaseMeta[];
+  /** Minimal runnable example passed to the Handler's `args` parameter. */
+  readonly exampleArgs?: Readonly<Record<string, WorkflowExampleValue>>;
+}
+
+/**
  * Function exported by a Workflow module as `default` or `run`.
  *
  * @typeParam TArgs - Arguments supplied by the caller.

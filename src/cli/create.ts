@@ -3,7 +3,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { CodexAgent } from "../agents";
-import type { AgentFunction } from "../agents";
+import type { AgentFunction, JsonSchema, JsonValue } from "../agents";
+import { TerminalUI } from "../tui";
 import { CliUsageError } from "./errors";
 
 const workflowCreatorSkillPath = resolve(
@@ -14,6 +15,24 @@ const workflowCreatorSkillPath = resolve(
 const defaultCreateAgent = new CodexAgent({
   skipGitRepositoryCheck: true,
 });
+
+const generationPlaceholder =
+  "/* Generating a DeerFlow Dynamic Workflow with Codex */";
+
+interface CreatedWorkflow {
+  readonly source: string;
+  readonly exampleArgsJson: string;
+}
+
+const workflowCreatorOutputSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    source: { type: "string", minLength: 1 },
+    exampleArgsJson: { type: "string", minLength: 2 },
+  },
+  required: ["source", "exampleArgsJson"],
+  additionalProperties: false,
+};
 
 /**
  * Executes the `deer-workflow create` command.
@@ -40,13 +59,42 @@ export async function runCreateCommand(
 
   const userPrompt = await readCreatePrompt(values);
   await assertWorkflowCreatorSkillExists();
+  process.stdout.write(`${generationPlaceholder}\n`);
 
-  const output = await runAgent(buildWorkflowCreatorPrompt(userPrompt), {
-    cwd: process.cwd(),
-    sandbox: "read-only",
+  const task = new TerminalUI().startTask({
+    activity: "Generating a Workflow with Codex",
+    estimate: "Usually takes 1–5 minutes",
+    successMessage: "Workflow generated",
+    failureMessage: "Workflow generation failed",
   });
 
-  console.log(unwrapSourceFence(output));
+  try {
+    const output = await runAgent<CreatedWorkflow>(
+      buildWorkflowCreatorPrompt(userPrompt),
+      {
+        cwd: process.cwd(),
+        sandbox: "read-only",
+        schema: workflowCreatorOutputSchema,
+      },
+    );
+    const source = unwrapSourceFence(output.source);
+    const exampleArgs = parseExampleArgsJson(output.exampleArgsJson);
+
+    task.succeed({
+      nextSteps: [
+        {
+          label: "Run the generated Workflow",
+          command: buildRunCommand(exampleArgs),
+        },
+      ],
+    });
+    console.log(source);
+  } catch (error) {
+    task.fail();
+    throw error;
+  } finally {
+    task.dispose();
+  }
 }
 
 /**
@@ -64,12 +112,52 @@ export function buildWorkflowCreatorPrompt(userPrompt: string): string {
     workflowCreatorSkillPath,
     "",
     "Read SKILL.md completely and follow every referenced file required for the task.",
-    "Return only the complete Workflow module as raw source text, without Markdown fences or explanation.",
-    "The output must be suitable for redirecting directly into a .ts or .js file.",
+    "Return a response matching the supplied JSON Schema.",
+    "Put the complete Workflow module in `source` as raw source text without Markdown fences.",
+    "Put a compact JSON object string with a minimal runnable example for the Handler's `args` parameter in `exampleArgsJson`.",
+    "The example keys must match actual properties used from `args` (for example, `args.topic` becomes `topic`).",
+    "Use the same example object in the module's `meta.exampleArgs`.",
     "",
     "--- USER REQUEST ---",
     userPrompt,
   ].join("\n");
+}
+
+/**
+ * Builds the copyable command shown after Workflow generation.
+ *
+ * @param exampleArgs - Minimal caller input produced with the Workflow.
+ * @returns A shell command with safely single-quoted compact JSON.
+ * @internal
+ */
+export function buildRunCommand(
+  exampleArgs: Readonly<Record<string, JsonValue>>,
+): string {
+  const json = JSON.stringify(exampleArgs);
+  const shellValue = `'${json.replaceAll("'", "'\\''")}'`;
+  return `deer-workflow run ./workflow.ts --input ${shellValue}`;
+}
+
+function parseExampleArgsJson(
+  value: string,
+): Readonly<Record<string, JsonValue>> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value) as unknown;
+  } catch (cause) {
+    throw new Error(
+      "The workflow-creator Agent returned invalid example args.",
+      {
+        cause,
+      },
+    );
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error(
+      "The workflow-creator Agent must return example args as a JSON object.",
+    );
+  }
+  return parsed as Record<string, JsonValue>;
 }
 
 /**
@@ -84,7 +172,7 @@ export function printCreateUsage(): void {
 
 Output:
   stdout  Generated Workflow source
-  stderr  Agent errors
+  stderr  Interactive progress and Agent errors
 `);
 }
 

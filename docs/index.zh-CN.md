@@ -65,6 +65,7 @@ export const meta = {
   name: "topic-research",
   description: "Researches topics in parallel and synthesizes a report.",
   phases: [{ title: "Research" }, { title: "Synthesis" }],
+  exampleArgs: { topics: ["Agent Skills", "Dynamic Workflow"] },
 };
 
 interface ResearchInput {
@@ -101,7 +102,9 @@ export default async function research(args: ResearchInput) {
 上一阶段；Workflow 成功或失败时，仍处于活动状态的阶段也会自动结束。
 
 `meta` 为生成的 Workflow 提供稳定的名称、描述和阶段声明，其中的阶段标题应与
-`phase()` 调用完全一致。当前 Runner 接受但尚未消费这个 Export。
+`phase()` 调用完全一致；`exampleArgs` 的键应对应实际读取的 `args` 属性。Runner
+会校验该 Export、发送 `workflow:meta` 事件，CLI 会用它构建运行 TUI 的阶段列表
+和生成完成后的下一步命令。
 
 ## 创建 Workflow
 
@@ -132,12 +135,16 @@ deer-workflow skill install
 
 ```bash
 deer-workflow run ./examples/deep-research/workflow.ts \
-  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
+  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？","outputPath":"./report.html"}'
 ```
 
-最终结果写入 stdout，Workflow 事件以 JSON Lines 写入 stderr。较长的 JSON
-Input 可以使用 `--input-file` 或 stdin。`--input` 和 `--input-file` 都优先于
-stdin，且两者不能同时使用。
+Deep Research 会自行写入 HTML 文件，并在非 Print Mode 下通过 stdout 以简洁
+JSON 返回绝对文件地址。默认模式的 stderr 被重定向时，Workflow 事件以 JSON
+Lines 写入；交互式终端则显示阶段与 Markdown 日志双栏 TUI。添加 `--print`
+或 `-p` 会禁用 TUI，并在 stdout 每行流式输出一个 JSON 事件；该模式不会再
+单独输出返回值。服务端、CI/CD、任务队列、事件采集器和自动化进程管道应优先
+使用 Print Mode。较长的 JSON Input 可以使用 `--input-file` 或 stdin。
+`--input` 和 `--input-file` 都优先于 stdin，且两者不能同时使用。
 
 从宿主程序启动同一个 Workflow 时使用 `WorkflowRunner`：
 
@@ -156,17 +163,20 @@ try {
 ```
 
 独立使用 Runner 时，默认通过 `console.log()` 向 stdout 输出 JSON Lines。
-CLI 会把这个输出目标覆盖为 stderr，从而让 stdout 只保留最终结果：
+CLI 默认把这个输出目标覆盖为 stderr，从而让 stdout 只保留最终结果；
+`--print` / `-p` 模式则把事件保留在 stdout、禁用 TUI，并抑制单独的返回值：
 
 ```json
 {"type":"workflow:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","sequence":1,"timestamp":"2026-07-26T08:00:00.000Z"}
-{"type":"workflow:phase:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","sequence":2,"timestamp":"2026-07-26T08:00:00.010Z"}
-{"type":"log","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","message":"Researching 2 topics","sequence":3,"timestamp":"2026-07-26T08:00:00.020Z"}
+{"type":"workflow:meta","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","meta":{"name":"research","description":"Researches and synthesizes evidence.","phases":[{"title":"Research"},{"title":"Synthesis"}]},"sequence":2,"timestamp":"2026-07-26T08:00:00.005Z"}
+{"type":"workflow:phase:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","sequence":3,"timestamp":"2026-07-26T08:00:00.010Z"}
+{"type":"log","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","message":"## Researching\\n- **2 topics** in parallel","sequence":4,"timestamp":"2026-07-26T08:00:00.020Z"}
 ```
 
 可用的事件包括：
 
 - `workflow:start`
+- `workflow:meta`
 - `workflow:end`
 - `workflow:error`
 - `workflow:phase:start`
@@ -204,8 +214,9 @@ runner.dispose();
 
 ## 示例
 
-- [Deep Research](../examples/deep-research/README.zh-CN.md)：使用
-  `parallel()` 并行研究多个独立角度，再进行结构化汇编。
+- [Deep Research](../examples/deep-research/README.zh-CN.md)：先探索研究
+  对象再制定计划，随后使用 `parallel()` 并行研究多个独立角度，并进行结构化
+  汇编，最后在 Present 阶段打开生成的 HTML。
 - [Blog Writer](../examples/blog-writer/README.zh-CN.md)：使用 `pipeline()`
   让每个章节独立通过起草和审校阶段。
 

@@ -11,7 +11,9 @@ import {
 import { endCurrentPhase } from "./phase";
 import type {
   WorkflowExecutionContext,
+  WorkflowExampleValue,
   WorkflowHandler,
+  WorkflowMeta,
   WorkflowTarget,
 } from "./types";
 
@@ -113,10 +115,18 @@ export async function workflow<TOutput = unknown, TArgs = unknown>(
     });
 
     try {
-      const handler = await loadWorkflowHandler<TArgs | undefined, TOutput>(
-        scriptPath,
-      );
-      const result = await handler(args, context);
+      const definition = await loadWorkflowDefinition<
+        TArgs | undefined,
+        TOutput
+      >(scriptPath);
+      if (definition.meta !== undefined) {
+        emitWorkflowEvent({
+          type: "workflow:meta",
+          ...toWorkflowEventContext(context),
+          meta: definition.meta,
+        });
+      }
+      const result = await definition.handler(args, context);
       endCurrentPhase(context);
       emitWorkflowEvent({
         type: "workflow:end",
@@ -162,9 +172,12 @@ function resolveWorkflowPath(
   return resolve(baseDirectory, normalizedPath);
 }
 
-async function loadWorkflowHandler<TArgs, TOutput>(
+async function loadWorkflowDefinition<TArgs, TOutput>(
   scriptPath: string,
-): Promise<WorkflowHandler<TArgs, TOutput>> {
+): Promise<{
+  readonly handler: WorkflowHandler<TArgs, TOutput>;
+  readonly meta?: WorkflowMeta;
+}> {
   let workflowModule: unknown;
 
   try {
@@ -192,11 +205,156 @@ async function loadWorkflowHandler<TArgs, TOutput>(
     );
   }
 
-  return candidate as WorkflowHandler<TArgs, TOutput>;
+  const meta = parseWorkflowMeta(workflowModule.meta, scriptPath);
+  return {
+    handler: candidate as WorkflowHandler<TArgs, TOutput>,
+    ...(meta === undefined ? {} : { meta }),
+  };
 }
 
 function isModuleRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function parseWorkflowMeta(
+  value: unknown,
+  scriptPath: string,
+): WorkflowMeta | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isModuleRecord(value)) {
+    throw invalidWorkflowMeta(scriptPath, "meta must be an object");
+  }
+
+  const { name, description, phases } = value;
+  if (typeof name !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) {
+    throw invalidWorkflowMeta(scriptPath, "meta.name must be kebab-case");
+  }
+  if (
+    typeof description !== "string" ||
+    !description.trim() ||
+    /[\r\n]/.test(description) ||
+    hasControlCharacters(description)
+  ) {
+    throw invalidWorkflowMeta(
+      scriptPath,
+      "meta.description must be a non-empty, one-line string",
+    );
+  }
+  if (!Array.isArray(phases) || phases.length === 0) {
+    throw invalidWorkflowMeta(
+      scriptPath,
+      "meta.phases must be a non-empty array",
+    );
+  }
+
+  const titles = phases.map((phase, index) => {
+    if (
+      !isModuleRecord(phase) ||
+      typeof phase.title !== "string" ||
+      !phase.title.trim() ||
+      hasControlCharacters(phase.title)
+    ) {
+      throw invalidWorkflowMeta(
+        scriptPath,
+        `meta.phases[${index}].title must be a non-empty string`,
+      );
+    }
+    return phase.title.trim();
+  });
+  if (new Set(titles).size !== titles.length) {
+    throw invalidWorkflowMeta(scriptPath, "meta.phases titles must be unique");
+  }
+
+  const exampleArgs = parseExampleArgs(value.exampleArgs, scriptPath);
+  return Object.freeze({
+    name,
+    description: description.trim(),
+    phases: Object.freeze(titles.map((title) => Object.freeze({ title }))),
+    ...(exampleArgs === undefined ? {} : { exampleArgs }),
+  });
+}
+
+function parseExampleArgs(
+  value: unknown,
+  scriptPath: string,
+): Readonly<Record<string, WorkflowExampleValue>> | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isModuleRecord(value) || Array.isArray(value)) {
+    throw invalidWorkflowMeta(
+      scriptPath,
+      "meta.exampleArgs must be a JSON-safe object",
+    );
+  }
+
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        cloneExampleValue(item, scriptPath),
+      ]),
+    ),
+  );
+}
+
+function cloneExampleValue(
+  value: unknown,
+  scriptPath: string,
+): WorkflowExampleValue {
+  if (
+    value === null ||
+    typeof value === "boolean" ||
+    typeof value === "number" ||
+    typeof value === "string"
+  ) {
+    if (typeof value === "number" && !Number.isFinite(value)) {
+      throw invalidWorkflowMeta(
+        scriptPath,
+        "meta.exampleArgs must contain only finite JSON numbers",
+      );
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return Object.freeze(
+      value.map((item) => cloneExampleValue(item, scriptPath)),
+    );
+  }
+  if (isModuleRecord(value)) {
+    return Object.freeze(
+      Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [
+          key,
+          cloneExampleValue(item, scriptPath),
+        ]),
+      ),
+    );
+  }
+  throw invalidWorkflowMeta(
+    scriptPath,
+    "meta.exampleArgs must contain only JSON-safe values",
+  );
+}
+
+function invalidWorkflowMeta(
+  scriptPath: string,
+  detail: string,
+): WorkflowLoadError {
+  return new WorkflowLoadError(
+    scriptPath,
+    `Invalid Workflow metadata at ${scriptPath}: ${detail}.`,
+  );
+}
+
+function hasControlCharacters(value: string): boolean {
+  return [...value].some((character) => {
+    const codePoint = character.codePointAt(0) ?? 0;
+    return codePoint < 32 || (codePoint >= 127 && codePoint <= 159);
+  });
 }
 
 function elapsedMilliseconds(startedAt: number): number {

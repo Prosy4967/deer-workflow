@@ -20,6 +20,10 @@ export const meta = {
     { title: "Draft and review" },
     { title: "Assembly" },
   ],
+  exampleArgs: {
+    topic: "Dynamic Workflow",
+    audience: "Agent builders",
+  },
 };
 
 /**
@@ -41,7 +45,15 @@ export default async function blogWriter(
   const keywords = args.keywords?.join(", ") || "none";
 
   phase("Outline");
-  log("Creating the editorial structure");
+  log(
+    [
+      "## Creating the editorial structure",
+      `- **Topic:** ${topic}`,
+      `- **Audience:** ${audience}`,
+      `- **Tone:** ${tone}`,
+      `- **Keywords:** ${keywords}`,
+    ].join("\n"),
+  );
 
   const outline = await agent<BlogOutline>(
     [
@@ -68,14 +80,23 @@ export default async function blogWriter(
       },
     },
   );
+  log(
+    [
+      `### Outline ready — ${outline.sections.length} sections`,
+      ...outline.sections.map((section) => `- ${section}`),
+    ].join("\n"),
+  );
 
   phase("Draft and review");
-  log(`Drafting ${outline.sections.length} sections through a Pipeline`);
+  log(
+    `## Draft and review\nSending **${outline.sections.length} sections** through the writing pipeline.`,
+  );
 
   const sectionResults = await pipeline(
     outline.sections,
-    (sectionBrief) =>
-      agent<BlogSection>(
+    async (sectionBrief) => {
+      log(`- Drafting \`${sectionBrief}\``);
+      const draft = await agent<BlogSection>(
         [
           `Draft this article section: ${sectionBrief}`,
           `Article title: ${outline.title}`,
@@ -87,9 +108,13 @@ export default async function blogWriter(
           sandbox: "read-only",
           schema: sectionSchema,
         },
-      ),
-    (draft) =>
-      agent<BlogSection>(
+      );
+      log(`- Draft complete: **${draft.heading}**`);
+      return draft;
+    },
+    async (draft) => {
+      log(`- Reviewing **${draft.heading}**`);
+      const reviewed = await agent<BlogSection>(
         [
           "Act as a demanding technical editor.",
           "Remove repetition, unsupported claims, filler, and generic AI phrasing.",
@@ -100,17 +125,30 @@ export default async function blogWriter(
           sandbox: "read-only",
           schema: sectionSchema,
         },
-      ),
+      );
+      log(`- Review complete: **${reviewed.heading}**`);
+      return reviewed;
+    },
   );
 
   const sections = sectionResults.filter(
     (section): section is BlogSection => section !== null,
   );
+  log(
+    `> Pipeline complete: **${sections.length}/${outline.sections.length}** sections survived drafting and review.`,
+  );
 
   phase("Assembly");
-  log(`Assembling ${sections.length} reviewed sections`);
+  log(
+    [
+      "## Assembling the article",
+      `- Combining **${sections.length} reviewed sections**`,
+      "- Smoothing transitions",
+      "- Removing repeated ideas",
+    ].join("\n"),
+  );
 
-  return agent<BlogArticle>(
+  const article = await agent<BlogArticle>(
     [
       "Assemble a cohesive final article from the reviewed sections.",
       `Working title: ${outline.title}`,
@@ -133,6 +171,15 @@ export default async function blogWriter(
       },
     },
   );
+  log(
+    [
+      "# Article ready",
+      `- **Title:** ${article.title}`,
+      `- **Sections:** ${sections.length}`,
+      "- **Format:** Markdown",
+    ].join("\n"),
+  );
+  return article;
 }
 
 const sectionSchema = {

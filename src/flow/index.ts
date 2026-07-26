@@ -15,6 +15,9 @@ export type {
   PipelineStage,
   WorkflowHandler,
   WorkflowExecutionContext,
+  WorkflowExampleValue,
+  WorkflowMeta,
+  WorkflowPhaseMeta,
   WorkflowReference,
   WorkflowTarget,
 } from "./types";

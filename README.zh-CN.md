@@ -101,13 +101,26 @@ deer-workflow skill install
 deer-workflow run ./workflow.ts --input '{"question":"你的问题"}'
 ```
 
+交互式运行会在双栏 TUI 中显示 `meta.phases` 和渲染后的 Markdown 日志；
+顶部标注 Workflow 名称、模块路径和工作目录，并用循环扫光突出活动 phase。
+默认模式下，stderr 被重定向时仍输出适合自动化处理的 JSONL。
+
+在服务端、CI/CD、任务队列、进程管道和事件采集等自动化环境中，推荐使用
+`--print` / `-p`。它会让 stdout 只输出稳定的 Event Stream，每行一个 JSON
+事件：
+
+```bash
+deer-workflow run ./workflow.ts --print \
+  --input '{"question":"你的问题"}' > events.jsonl
+```
+
 ## 示例
 
 运行 [Deep Research](./examples/deep-research/README.zh-CN.md)：
 
 ```bash
 deer-workflow run ./examples/deep-research/workflow.ts \
-  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
+  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？","outputPath":"./report.html"}'
 ```
 
 运行 [Blog Writer](./examples/blog-writer/README.zh-CN.md)：

@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 
-import { agent, CodexAgentError } from "./agents";
+import { CodexAgentError } from "./agents";
+import { runAgentCommand } from "./cli/agent";
 import { runCreateCommand } from "./cli/create";
 import { CliUsageError } from "./cli/errors";
 import { runWorkflowCommand } from "./cli/run";
@@ -39,22 +40,6 @@ try {
   process.exitCode = 1;
 }
 
-async function runAgentCommand(values: readonly string[]): Promise<void> {
-  const argumentPrompt = values.join(" ").trim();
-  const prompt =
-    argumentPrompt ||
-    (process.stdin.isTTY ? "" : (await Bun.stdin.text()).trim());
-
-  if (!prompt) {
-    throw new CliUsageError(
-      "The agent command requires a prompt argument or stdin.",
-    );
-  }
-
-  const output = await agent(prompt, { cwd: process.cwd() });
-  console.log(output);
-}
-
 function printUsage(): void {
   console.log(`deer-workflow
 
@@ -64,7 +49,7 @@ Usage:
   deer-workflow create "Describe the Workflow"
   echo "Describe the Workflow" | deer-workflow create
   deer-workflow skill install
-  deer-workflow run <workflow> [--input '<json>']
+  deer-workflow run <workflow> [--print] [--input '<json>']
   deer-workflow run <workflow> [--input-file <path>]
   echo '<json>' | deer-workflow run <workflow>
 

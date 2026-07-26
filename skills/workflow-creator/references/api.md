@@ -21,11 +21,15 @@ export const meta = {
   name: "workflow-name",
   description: "One-line description.",
   phases: [{ title: "Plan" }, { title: "Execute" }],
+  exampleArgs: { key: "value" },
 };
 ```
 
-The current runtime tolerates this export but does not yet read it or include
-it in events. Keep the object literal static for forward compatibility.
+The runtime validates this export and emits a `workflow:meta` event before the
+Handler runs. The interactive CLI uses its ordered phases in the execution
+dashboard. Keep the object literal static, use a kebab-case name, and keep
+phase titles non-empty and unique. `exampleArgs` is a JSON-safe object whose
+keys match properties read from the Handler's `args` parameter.
 
 The CLI loads it with:
 
@@ -35,8 +39,19 @@ deer-workflow run ./workflow.ts --input '{"key":"value"}'
 
 Input may instead come from `--input-file` or JSON on stdin. `--input` and
 `--input-file` cannot be combined; explicit input takes precedence over stdin.
-The final returned value is written to stdout. Workflow events and logs are
-JSON Lines on stderr.
+`run --print` and `run -p` disable the TUI and write one compact JSON Workflow
+event per stdout line. Print Mode is the recommended interface for servers,
+CI/CD, task queues, process pipelines, automation runners, and event
+collectors. It suppresses the separate handler result and reserves stderr for
+CLI diagnostics.
+Outside Print Mode, the final returned value is written to stdout. For
+substantial generated content, prefer writing an artifact file and returning
+compact metadata with
+its path instead of writing the whole document to stdout. Do not overwrite an
+existing artifact; use atomic exclusive creation and add a numeric suffix
+before the extension when necessary. In the default mode, Workflow events and
+logs are JSON Lines on stderr. When stderr is an interactive terminal, `run`
+instead drives the TUI. Default-mode redirected stderr remains pure JSONL.
 
 There is no global API injection. Caller input is the Handler's first
 parameter, conventionally named `args`; it is not a `globalThis` property.
@@ -49,6 +64,12 @@ deer-workflow create "Describe the Workflow" > workflow.ts
 ```
 
 `create` generates the module but does not execute it.
+In an interactive terminal it shows an indefinite spinner, notes that
+generation usually takes 1–5 minutes, and finishes with the next-step example
+`deer-workflow run ./workflow.ts`. Redirected stderr has no progress UI.
+The shared terminal UI honors `NO_COLOR`, disables visual output for
+non-interactive or `TERM=dumb` destinations, and renders a failure state before
+the CLI reports an error.
 
 Install this bundled Skill for other Agents that support Agent Skills:
 
@@ -88,6 +109,11 @@ function agent<TOutput = string>(
 `agent()` runs a complete Coding Agent loop. Without a schema it returns text.
 With a schema, Codex CLI validates the final response and Deer Workflow parses
 the JSON.
+
+The schema must use the JSON Schema subset accepted by Codex structured
+outputs. URL fields should currently be plain strings; do not use
+`format: "uri"`, which Codex rejects as an invalid response schema. Validate or
+sanitize URLs in deterministic Workflow code before using them.
 
 ```ts
 interface AgentOptions {
@@ -169,9 +195,19 @@ function log(message: string): void;
 ```
 
 Inside a `WorkflowRunner`, `log()` emits a typed `log` event. Its phase is read
-from the active Workflow context. Outside a Runner it writes to stderr. A
-standalone Runner writes JSON events through `console.log` by default; the CLI
-overrides its writer so events go to stderr.
+from the active Workflow context. Messages may contain Markdown; the
+interactive CLI renders headings, emphasis, inline code, links, quotes, lists,
+and fenced code blocks. Outside a Runner it writes to stderr. A standalone
+Runner writes JSON events through `console.log` by default; the CLI uses pure
+JSONL on redirected stderr and an event-driven dashboard on an interactive
+terminal.
+
+Emit a useful log before each potentially slow Agent call, during concurrent
+fan-out as individual tasks start and finish, when concise findings become
+available, and before and after artifact writes. Logs are the user's live
+evidence that work is progressing. Keep them factual and compact; do not emit
+timer-only heartbeats, secrets, complete prompts, full Agent responses, or the
+entire final artifact.
 
 ## `workflow()`
 

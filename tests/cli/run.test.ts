@@ -107,6 +107,40 @@ describe("deer-workflow run", () => {
     });
   });
 
+  test("prints one Workflow event per stdout line with --print", async () => {
+    const result = await runCli([
+      "run",
+      echoWorkflowPath,
+      "--print",
+      "--input",
+      JSON.stringify({ source: "print" }),
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    const events = parseEventLines(result.stdout);
+    expect(events.map((event) => event.type)).toEqual([
+      "workflow:start",
+      "workflow:phase:start",
+      "log",
+      "workflow:phase:end",
+      "workflow:end",
+    ]);
+    expect(events.every((event) => event.sequence > 0)).toBe(true);
+    expect(result.stdout.split("\n")).toHaveLength(events.length);
+  });
+
+  test("supports -p and keeps failures out of the stdout Event Stream", async () => {
+    const result = await runCli(["run", failingWorkflowPath, "-p"]);
+
+    expect(result.exitCode).toBe(1);
+    expect(parseEventLines(result.stdout).map((event) => event.type)).toEqual([
+      "workflow:start",
+      "workflow:error",
+    ]);
+    expect(result.stderr).toContain("workflow failed");
+  });
+
   test("rejects invalid JSON before starting the Workflow", async () => {
     const result = await runCli([
       "run",

@@ -101,7 +101,21 @@ skipped.
 ## Run a Workflow
 
 ```bash
-deer-workflow run ./workflow.ts --input '{"question":"Your question"}'
+deer-workflow run ./workflow.ts --input '{"question":"Why has Neo Labs recently emerged as a new force in AI?"}'
+```
+
+Interactive runs show `meta.phases` and rendered Markdown logs in a live
+two-pane TUI, together with the Workflow name, module path, working directory,
+and an animated highlight on the active phase. In the default mode, redirected
+stderr remains JSONL for automation.
+
+Use `--print` / `-p` when running on servers or in automation such as CI/CD,
+task queues, process pipelines, and event collectors. It exposes a stable
+stdout Event Stream with one JSON event per line:
+
+```bash
+deer-workflow run ./workflow.ts --print \
+  --input '{"question":"Why has Neo Labs recently emerged as a new force in AI?"}'
 ```
 
 ## Examples
@@ -110,14 +124,14 @@ Run [Deep Research](./examples/deep-research/README.md):
 
 ```bash
 deer-workflow run ./examples/deep-research/workflow.ts \
-  --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?"}'
+  --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?","outputPath":"./report.html"}'
 ```
 
 Run [Blog Writer](./examples/blog-writer/README.md):
 
 ```bash
 deer-workflow run ./examples/blog-writer/workflow.ts \
-  --input '{"topic":"Dynamic Workflow","audience":"Agent builders"}'
+  --input '{"topic":"The Emerging Trends of Neo Labs","audience":"Agent builders"}'
 ```
 
 These paths refer to files in this repository. Clone or download the repository

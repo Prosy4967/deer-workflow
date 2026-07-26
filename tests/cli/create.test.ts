@@ -2,6 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { delimiter, join, resolve } from "node:path";
 
+import { buildRunCommand } from "../../src/cli/create";
+
 const projectDirectory = resolve(".");
 const cliPath = resolve("src/cli.ts");
 
@@ -37,7 +39,10 @@ if (args[sandboxIndex + 1] !== "read-only") {
   process.exit(10);
 }
 
-await Bun.write(outputPath, \`\\\`\\\`\\\`ts\\n\${prompt}\\n\\\`\\\`\\\`\`);
+await Bun.write(outputPath, JSON.stringify({
+  source: \`\\\`\\\`\\\`ts\\n\${prompt}\\n\\\`\\\`\\\`\`,
+  exampleArgsJson: JSON.stringify({ topic: "Example topic" }),
+}));
 `,
     "utf8",
   );
@@ -54,7 +59,10 @@ describe("deer-workflow create", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe("");
-    expect(result.stdout).toStartWith("$workflow-creator\n");
+    expect(result.stdout).toStartWith(
+      "/* Generating a DeerFlow Dynamic Workflow with Codex */\n",
+    );
+    expect(result.stdout).toContain("$workflow-creator\n");
     expect(result.stdout).toContain("skills/workflow-creator/SKILL.md");
     expect(result.stdout).toEndWith(
       "--- USER REQUEST ---\nResearch three markets",
@@ -115,8 +123,18 @@ describe("deer-workflow create", () => {
     expect(skill).toContain('name: "workflow-name"');
     expect(skill).toContain('description: "One-line description');
     expect(skill).toContain('phases: [{ title: "Plan" }');
+    expect(skill).toContain("exampleArgs");
     expect(skill).toContain("args: WorkflowInput");
     expect(skill).toContain("`args` is not a JavaScript global");
+  });
+
+  test("builds a runnable next command from the generated args shape", () => {
+    expect(buildRunCommand({ topic: "Agent workflows" })).toBe(
+      `deer-workflow run ./workflow.ts --input '{"topic":"Agent workflows"}'`,
+    );
+    expect(buildRunCommand({ topic: "What's new" })).toBe(
+      `deer-workflow run ./workflow.ts --input '{"topic":"What'\\''s new"}'`,
+    );
   });
 });
 

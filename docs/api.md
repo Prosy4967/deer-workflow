@@ -52,6 +52,7 @@ export const meta = {
   name: "workflow-name",
   description: "One-line description.",
   phases: [{ title: "Plan" }, { title: "Execute" }],
+  exampleArgs: { topic: "A realistic example topic" },
 };
 ```
 
@@ -59,12 +60,16 @@ export const meta = {
 - `description` is a one-line summary of the Workflow.
 - `phases` is an ordered list of `{ title }` objects. Its titles should exactly
   match the Workflow's `phase()` calls.
+- `exampleArgs` is an optional JSON-safe object. Its keys match properties read
+  from the Handler's `args` parameter and provide a minimal runnable example.
 
 Keep `meta` statically readable: use only literal values, arrays, and objects.
 Do not use variables, function calls, spreads, computed properties, or template
-literals. `meta` is currently a forward-compatible authoring contract: the
-Runner tolerates the export but does not yet read, validate, or include it in
-events.
+literals. The runtime validates a present `meta` export after loading the
+module and emits it as `workflow:meta` before invoking the Handler. Names must
+be kebab-case, descriptions must be non-empty and one-line, and phase titles
+must be non-empty and unique. Metadata remains optional for backward
+compatibility.
 
 ### Handler arguments
 
@@ -344,7 +349,9 @@ function log(message: string): void;
 
 Emits progress. Direct calls use stderr by default. Inside
 `WorkflowRunner.run()`, each call becomes a `log` event handled by the Runner's
-JSON writer.
+JSON writer. Messages may contain Markdown. JSONL consumers receive the
+original Markdown string, while the interactive CLI TUI renders headings,
+emphasis, inline code, links, quotes, lists, and fenced code blocks.
 
 ### `withLogSink()`
 
@@ -366,6 +373,7 @@ automatically.
 ```typescript
 type WorkflowEventType =
   | "workflow:start"
+  | "workflow:meta"
   | "workflow:end"
   | "workflow:error"
   | "workflow:phase:start"
@@ -394,6 +402,7 @@ Event-specific fields:
 | Event                  | Additional fields           |
 | ---------------------- | --------------------------- |
 | `workflow:start`       | None                        |
+| `workflow:meta`        | `meta`                      |
 | `workflow:end`         | `durationMs`                |
 | `workflow:error`       | `durationMs`, `error`       |
 | `workflow:phase:start` | `phase`                     |
@@ -458,7 +467,9 @@ echo "Inspect this repository" | deer-workflow agent
 ```
 
 The final Agent response uses stdout. Usage and Agent errors use stderr and
-produce a non-zero exit status.
+produce a non-zero exit status. In an interactive terminal, the command uses
+the same indefinite task TUI as `create` and `run`, including an estimated
+duration and elapsed time.
 
 Generate a Workflow through the bundled Workflow Creator Skill:
 
@@ -471,7 +482,18 @@ echo "Describe the Workflow" | deer-workflow create
 read it and its required references, then appends the user's prompt. Codex runs
 with a read-only sandbox and may run outside a Git repository. One enclosing
 Markdown source fence is removed, so stdout can be redirected directly to a
-`.ts` or `.js` file. The generated Workflow is not executed.
+`.ts` or `.js` file. Before generation begins, stdout receives
+`/* Generating a DeerFlow Dynamic Workflow with Codex */`, so a redirected
+target is immediately non-empty and remains valid source while Codex works.
+The generated Workflow is not executed.
+
+When stderr is attached to an interactive terminal, `create` explains that
+Codex generation usually takes 1–5 minutes and shows an indefinite animated
+progress indicator with elapsed time until generation finishes. The indicator
+ends with a copyable next-step example,
+`deer-workflow run ./workflow.ts --input '{"topic":"..."}'`, derived from the
+generated Workflow's example arguments. It is disabled when stderr is
+redirected, so generated source and scripted output remain unchanged.
 
 Install the bundled Workflow Creator Skill for other Agents:
 
@@ -489,6 +511,7 @@ Run a Workflow module:
 
 ```text
 deer-workflow run <workflow>
+deer-workflow run <workflow> --print
 deer-workflow run <workflow> --input '<json>'
 deer-workflow run <workflow> --input-file <path>
 echo '<json>' | deer-workflow run <workflow>
@@ -499,9 +522,34 @@ echo '<json>' | deer-workflow run <workflow>
 precedence over stdin. Invalid JSON, loading failures, and execution failures
 produce a non-zero exit status.
 
-The CLI constructs a `WorkflowRunner` and writes JSONL events to stderr. A
-string result is written directly to stdout, another JSON-serializable value
-is written as compact JSON, and `undefined` produces no result line.
+`--print` (short form `-p`) disables the TUI and writes each Workflow event
+immediately to stdout as one compact JSON line. It suppresses the separate
+Workflow result so stdout remains a pure JSONL Event Stream; stderr is reserved
+for CLI diagnostics. This is the recommended mode for servers, CI/CD, task
+queues, process pipelines, automation runners, and event collectors:
+
+```text
+deer-workflow run ./workflow.ts -p --input '{"topic":"..."}' > events.jsonl
+```
+
+The CLI constructs a `WorkflowRunner`. Outside Print Mode, redirected stderr
+receives every event as JSONL. In an interactive terminal, events instead drive
+a responsive TUI: declared `meta.phases` appear on the left with pending,
+active, completed, or failed states, while rendered Markdown logs scroll on the
+right.
+The header identifies the Workflow by `meta.name`, its module path, and the
+current working directory. The active phase combines a spinner with a
+continuously sweeping highlight across its title; completed, pending, and
+failed phases remain visually stable. Narrow terminals switch to a stacked
+layout. Outside Print Mode, a string result is written directly to stdout,
+another JSON-serializable value is written as compact JSON, and `undefined`
+produces no result line.
+
+The shared TUI activates only when stderr is an interactive terminal and
+`TERM` is not `dumb`. It honors `NO_COLOR` while retaining animation and
+automatically renders success or failure before the CLI prints final output or
+error details. The header uses `🦌 Deer Workflow` consistently across
+long-running commands.
 
 ### `WorkflowRunner`
 
@@ -523,9 +571,10 @@ class WorkflowRunner {
 
 Runs Workflows and exposes lifecycle, phase, and log events through one stream.
 A standalone Runner writes each event to stdout as one JSON line by default.
-The CLI supplies a stderr writer instead. A Runner can be reused and can
-execute Workflows concurrently; its async contexts remain isolated while all
-events share one increasing sequence.
+The CLI supplies a stderr writer in its default mode and a stdout writer in
+`--print` / `-p` mode. A Runner can be reused and can execute Workflows
+concurrently; its async contexts remain isolated while all events share one
+increasing sequence.
 
 ```typescript
 interface WorkflowRunnerOptions {
@@ -540,7 +589,10 @@ executions.
 
 ## Examples
 
-- [Deep Research](../examples/deep-research/README.md) combines `agent()`,
-  `phase()`, `parallel()`, `log()`, and `WorkflowRunner`.
+- [Deep Research](../examples/deep-research/README.md) runs a scoping search
+  before planning, then combines `agent()`, `phase()`, `parallel()`, `log()`,
+  and `WorkflowRunner`. Its final Present phase opens the generated HTML file
+  with the operating system. The Planner proposes the filename, and atomic
+  numbered fallbacks preserve existing reports.
 - [Blog Writer](../examples/blog-writer/README.md) combines `agent()`,
   `phase()`, `pipeline()`, `log()`, and `WorkflowRunner`.

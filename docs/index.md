@@ -70,6 +70,7 @@ export const meta = {
   name: "topic-research",
   description: "Researches topics in parallel and synthesizes a report.",
   phases: [{ title: "Research" }, { title: "Synthesis" }],
+  exampleArgs: { topics: ["Agent Skills", "Dynamic Workflow"] },
 };
 
 interface ResearchInput {
@@ -107,8 +108,10 @@ automatically ends the previous one. Any active phase is also ended when the
 Workflow succeeds or fails.
 
 `meta` gives generated Workflows a stable name, description, and declared phase
-list. Its phase titles should exactly match `phase()` calls. The current Runner
-accepts but does not yet consume this export.
+list, plus runnable example caller arguments. Its phase titles should exactly
+match `phase()` calls, while `exampleArgs` keys should match properties read
+from `args`. The Runner validates this export, emits a `workflow:meta` event,
+and the CLI uses it for the execution TUI and generated next command.
 
 ## Create a Workflow
 
@@ -142,11 +145,18 @@ Use the CLI when starting a Workflow from a shell:
 
 ```bash
 deer-workflow run ./examples/deep-research/workflow.ts \
-  --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?"}'
+  --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?","outputPath":"./report.html"}'
 ```
 
-The result uses stdout, while Workflow events use stderr as JSON Lines. Use
-`--input-file` or stdin when inline JSON is inconvenient. `--input` takes
+Deep Research writes the HTML artifact itself and, outside Print Mode, returns
+its absolute path as compact JSON on stdout. Default-mode redirected stderr
+receives Workflow events as JSON Lines; an interactive terminal displays a
+two-pane phase and Markdown-log TUI.
+Add `--print` or `-p` to disable the TUI and stream one JSON event per stdout
+line; in that mode the separate result is suppressed. Print Mode is the
+recommended interface for servers, CI/CD, task queues, event collectors, and
+automated process pipelines.
+Use `--input-file` or stdin when inline JSON is inconvenient. `--input` takes
 precedence over stdin, as does `--input-file`; `--input` and `--input-file`
 cannot be combined.
 
@@ -167,18 +177,22 @@ try {
 ```
 
 A standalone Runner calls `console.log()` once per event by default and writes
-JSON Lines to stdout. The CLI overrides this destination to stderr so its
-stdout contains only the final result:
+JSON Lines to stdout. In the CLI's default mode, it overrides this destination
+to stderr so stdout contains only the final result. In `--print` / `-p` mode,
+the CLI instead keeps events on stdout, disables the TUI, and suppresses the
+separate result:
 
 ```json
 {"type":"workflow:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","sequence":1,"timestamp":"2026-07-26T08:00:00.000Z"}
-{"type":"workflow:phase:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","sequence":2,"timestamp":"2026-07-26T08:00:00.010Z"}
-{"type":"log","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","message":"Researching 2 topics","sequence":3,"timestamp":"2026-07-26T08:00:00.020Z"}
+{"type":"workflow:meta","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","meta":{"name":"research","description":"Researches and synthesizes evidence.","phases":[{"title":"Research"},{"title":"Synthesis"}]},"sequence":2,"timestamp":"2026-07-26T08:00:00.005Z"}
+{"type":"workflow:phase:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","sequence":3,"timestamp":"2026-07-26T08:00:00.010Z"}
+{"type":"log","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","message":"## Researching\\n- **2 topics** in parallel","sequence":4,"timestamp":"2026-07-26T08:00:00.020Z"}
 ```
 
 The event protocol includes:
 
 - `workflow:start`
+- `workflow:meta`
 - `workflow:end`
 - `workflow:error`
 - `workflow:phase:start`
@@ -217,8 +231,10 @@ lets the host reconstruct the observed order.
 
 ## Examples
 
-- [Deep Research](../examples/deep-research/README.md) uses `parallel()` to
-  investigate independent angles before a structured synthesis.
+- [Deep Research](../examples/deep-research/README.md) scopes the subject
+  before planning, then uses `parallel()` to investigate independent angles
+  before a structured synthesis and opens the generated HTML in a final
+  Present phase.
 - [Blog Writer](../examples/blog-writer/README.md) uses `pipeline()` to
   draft and review each section independently.
 

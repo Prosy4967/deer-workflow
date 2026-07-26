@@ -1,8 +1,11 @@
+import type { WorkflowMeta } from "../flow/types";
+
 /**
  * Event names emitted during Workflow execution.
  */
 export type WorkflowEventType =
   | "workflow:start"
+  | "workflow:meta"
   | "workflow:end"
   | "workflow:error"
   | "workflow:phase:start"
@@ -42,6 +45,16 @@ export interface WorkflowEventEnvelope {
  */
 export interface WorkflowStartEventInput extends WorkflowEventContext {
   readonly type: "workflow:start";
+}
+
+/**
+ * Event emitted after a Workflow module's optional metadata is loaded.
+ */
+export interface WorkflowMetaEventInput extends WorkflowEventContext {
+  readonly type: "workflow:meta";
+
+  /** Validated static identity and ordered phase plan. */
+  readonly meta: WorkflowMeta;
 }
 
 /**
@@ -110,7 +123,7 @@ export interface WorkflowPhaseEndEventInput extends WorkflowEventContext {
 export interface WorkflowLogEventInput extends WorkflowEventContext {
   readonly type: "log";
 
-  /** Human-readable progress message. */
+  /** Human-readable progress message, optionally formatted as Markdown. */
   readonly message: string;
 
   /** Active phase when the message was emitted. */
@@ -122,6 +135,7 @@ export interface WorkflowLogEventInput extends WorkflowEventContext {
  */
 export type WorkflowEventInput =
   | WorkflowStartEventInput
+  | WorkflowMetaEventInput
   | WorkflowEndEventInput
   | WorkflowErrorEventInput
   | WorkflowPhaseStartEventInput

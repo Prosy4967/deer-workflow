@@ -5,6 +5,9 @@ export interface RunCommandArguments {
   /** Workflow module path supplied by the user. */
   readonly scriptPath: string;
 
+  /** Whether stdout should contain only the JSONL Workflow Event Stream. */
+  readonly print: boolean;
+
   /** JSON text supplied directly through `--input`. */
   readonly inlineInput?: string;
 
