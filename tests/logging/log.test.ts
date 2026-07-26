@@ -1,13 +1,6 @@
-import {
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { describe, expect, test } from "bun:test";
 
-import {
-  log,
-  withLogSink,
-} from "../../src/logging";
+import { log, withLogSink } from "@deer-flow/workflow/logging";
 
 describe("log", () => {
   test("routes messages to the active Log Sink", () => {
@@ -21,10 +14,7 @@ describe("log", () => {
       },
     );
 
-    expect(messages).toEqual([
-      "Research started",
-      "Research finished",
-    ]);
+    expect(messages).toEqual(["Research started", "Research finished"]);
   });
 
   test("keeps concurrent asynchronous Log Sinks isolated", async () => {
@@ -75,4 +65,3 @@ describe("log", () => {
     expect(() => log("   ")).toThrow(TypeError);
   });
 });
-

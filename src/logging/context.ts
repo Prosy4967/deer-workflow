@@ -1,9 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import type {
-  LoggingContext,
-  LogSink,
-} from "./types";
+import type { LoggingContext, LogSink } from "./types";
 
 const loggingContextStorage = new AsyncLocalStorage<LoggingContext>();
 
@@ -32,4 +29,3 @@ export function runWithLogSink<TOutput>(
 ): TOutput {
   return loggingContextStorage.run({ sink }, callback);
 }
-

@@ -1,8 +1,5 @@
 import { dirname, isAbsolute, resolve } from "node:path";
-import {
-  fileURLToPath,
-  pathToFileURL,
-} from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { emitWorkflowEvent } from "../events/context";
 import { serializeWorkflowError } from "../events/error";
@@ -88,10 +85,7 @@ export class WorkflowNestingError extends Error {
  * );
  * ```
  */
-export async function workflow<
-  TOutput = unknown,
-  TArgs = unknown,
->(
+export async function workflow<TOutput = unknown, TArgs = unknown>(
   target: WorkflowTarget,
   args?: TArgs,
 ): Promise<TOutput> {
@@ -147,9 +141,7 @@ function resolveWorkflowPath(
   target: WorkflowTarget,
   parentContext: WorkflowExecutionContext | undefined,
 ): string {
-  const rawPath = typeof target === "string"
-    ? target
-    : target.scriptPath;
+  const rawPath = typeof target === "string" ? target : target.scriptPath;
   const normalizedPath = rawPath.trim();
 
   if (!normalizedPath) {
@@ -203,9 +195,7 @@ async function loadWorkflowHandler<TArgs, TOutput>(
   return candidate as WorkflowHandler<TArgs, TOutput>;
 }
 
-function isModuleRecord(
-  value: unknown,
-): value is Record<string, unknown> {
+function isModuleRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 

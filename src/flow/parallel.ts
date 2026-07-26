@@ -1,7 +1,4 @@
-import type {
-  ParallelResults,
-  ParallelTask,
-} from "./types";
+import type { ParallelResults, ParallelTask } from "./types";
 
 /**
  * Starts every task concurrently and waits at a Barrier until all tasks settle.
@@ -22,9 +19,9 @@ import type {
  * ]);
  * ```
  */
-export async function parallel<
-  const TTasks extends readonly ParallelTask[],
->(tasks: TTasks): Promise<ParallelResults<TTasks>> {
+export async function parallel<const TTasks extends readonly ParallelTask[]>(
+  tasks: TTasks,
+): Promise<ParallelResults<TTasks>> {
   const results = await Promise.all(
     Array.from(tasks, async (task) => {
       try {

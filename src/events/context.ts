@@ -1,13 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
 import type { WorkflowEventEmitter } from "./emitter";
-import type {
-  WorkflowEvent,
-  WorkflowEventInput,
-} from "./types";
+import type { WorkflowEvent, WorkflowEventInput } from "./types";
 
-const eventEmitterStorage =
-  new AsyncLocalStorage<WorkflowEventEmitter>();
+const eventEmitterStorage = new AsyncLocalStorage<WorkflowEventEmitter>();
 
 /**
  * Returns the Emitter bound to the current asynchronous execution chain.
@@ -15,8 +11,7 @@ const eventEmitterStorage =
  * @internal
  */
 export function getActiveWorkflowEventEmitter():
-  | WorkflowEventEmitter
-  | undefined {
+  WorkflowEventEmitter | undefined {
   return eventEmitterStorage.getStore();
 }
 
@@ -42,4 +37,3 @@ export function emitWorkflowEvent(
 ): WorkflowEvent | undefined {
   return getActiveWorkflowEventEmitter()?.emit(input);
 }
-

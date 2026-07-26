@@ -1,7 +1,3 @@
-export {
-  WorkflowRunner,
-} from "./workflow-runner";
+export { WorkflowRunner } from "./workflow-runner";
 
-export type {
-  WorkflowRunnerOptions,
-} from "./types";
+export type { WorkflowRunnerOptions } from "./types";

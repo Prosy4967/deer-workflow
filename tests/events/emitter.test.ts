@@ -1,14 +1,10 @@
-import {
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import {
   createJsonEventWriter,
   WorkflowEventEmitter,
-} from "../../src/events";
-import type { WorkflowEvent } from "../../src/events";
+} from "@deer-flow/workflow/events";
+import type { WorkflowEvent } from "@deer-flow/workflow/events";
 
 const eventContext = {
   workflowId: "workflow-1",

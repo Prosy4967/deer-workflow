@@ -1,14 +1,8 @@
-export {
-  WorkflowEventEmitter,
-} from "./emitter";
+export { WorkflowEventEmitter } from "./emitter";
 
-export {
-  createJsonEventWriter,
-} from "./json-writer";
+export { createJsonEventWriter } from "./json-writer";
 
-export {
-  serializeWorkflowError,
-} from "./error";
+export { serializeWorkflowError } from "./error";
 
 export type {
   LogWriter,
@@ -26,4 +20,3 @@ export type {
   WorkflowPhaseStartEventInput,
   WorkflowStartEventInput,
 } from "./types";
-

@@ -4,19 +4,19 @@
     "module": "Preserve",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@deer-flow/workflow": ["./src/index.ts"],
+      "@deer-flow/workflow/*": ["./src/*/index.ts"]
+    },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
-    "types": [
-      "bun"
-    ],
+    "types": ["bun"],
     "strict": true,
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true
   },
-  "include": [
-    "src/**/*.ts",
-    "tests/**/*.ts"
-  ]
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }

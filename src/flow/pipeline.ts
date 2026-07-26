@@ -1,7 +1,4 @@
-import type {
-  PipelineStage,
-  RuntimePipelineStage,
-} from "./types";
+import type { PipelineStage, RuntimePipelineStage } from "./types";
 
 /**
  * Runs every item through a sequence of stages without a global stage Barrier.
@@ -49,13 +46,7 @@ export function pipeline<TOriginal, TStage1, TStage2, TStage3>(
   stage3: PipelineStage<Awaited<TStage2>, TOriginal, TStage3>,
 ): Promise<Array<Awaited<TStage3> | null>>;
 
-export function pipeline<
-  TOriginal,
-  TStage1,
-  TStage2,
-  TStage3,
-  TStage4,
->(
+export function pipeline<TOriginal, TStage1, TStage2, TStage3, TStage4>(
   items: readonly TOriginal[],
   stage1: PipelineStage<TOriginal, TOriginal, TStage1>,
   stage2: PipelineStage<Awaited<TStage1>, TOriginal, TStage2>,

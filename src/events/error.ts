@@ -22,4 +22,3 @@ export function serializeWorkflowError(
     message: String(error),
   };
 }
-

@@ -16,7 +16,8 @@ if (command !== "agent") {
 }
 
 const argumentPrompt = values.join(" ").trim();
-const prompt = argumentPrompt ||
+const prompt =
+  argumentPrompt ||
   (process.stdin.isTTY ? "" : (await Bun.stdin.text()).trim());
 
 if (!prompt) {

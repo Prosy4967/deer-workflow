@@ -1,10 +1,4 @@
-import {
-  afterAll,
-  beforeAll,
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -17,7 +11,7 @@ import {
   workflow,
   WorkflowLoadError,
   WorkflowNestingError,
-} from "../../src/flow";
+} from "@deer-flow/workflow/flow";
 
 let temporaryDirectory: string;
 let rootWorkflowPath: string;
@@ -30,9 +24,7 @@ beforeAll(async () => {
     join(tmpdir(), "deer-workflow-flow-test-"),
   );
 
-  const flowModuleUrl = pathToFileURL(
-    resolve("src/flow/index.ts"),
-  ).href;
+  const flowModuleUrl = pathToFileURL(resolve("src/flow/index.ts")).href;
 
   rootWorkflowPath = join(temporaryDirectory, "root.ts");
   await writeFile(
@@ -83,20 +75,14 @@ export default function run() {
     "utf8",
   );
 
-  const grandchildWorkflowPath = join(
-    temporaryDirectory,
-    "grandchild.ts",
-  );
+  const grandchildWorkflowPath = join(temporaryDirectory, "grandchild.ts");
   await writeFile(
     grandchildWorkflowPath,
     "export default () => 'too deep';\n",
     "utf8",
   );
 
-  const nestedChildWorkflowPath = join(
-    temporaryDirectory,
-    "nested-child.ts",
-  );
+  const nestedChildWorkflowPath = join(temporaryDirectory, "nested-child.ts");
   await writeFile(
     nestedChildWorkflowPath,
     `
@@ -109,10 +95,7 @@ export default function run() {
     "utf8",
   );
 
-  nestedParentWorkflowPath = join(
-    temporaryDirectory,
-    "nested-parent.ts",
-  );
+  nestedParentWorkflowPath = join(temporaryDirectory, "nested-parent.ts");
   await writeFile(
     nestedParentWorkflowPath,
     `
@@ -126,11 +109,7 @@ export default function run() {
   );
 
   invalidWorkflowPath = join(temporaryDirectory, "invalid.ts");
-  await writeFile(
-    invalidWorkflowPath,
-    "export const value = 42;\n",
-    "utf8",
-  );
+  await writeFile(invalidWorkflowPath, "export const value = 42;\n", "utf8");
 });
 
 afterAll(async () => {
@@ -183,4 +162,3 @@ describe("workflow", () => {
     );
   });
 });
-

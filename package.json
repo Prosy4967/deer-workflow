@@ -1,5 +1,5 @@
 {
-  "name": "deer-workflow",
+  "name": "@deer-flow/workflow",
   "version": "0.0.1",
   "description": "An open-source Dynamic Workflow runtime for AI agents.",
   "type": "module",
@@ -16,13 +16,22 @@
   },
   "scripts": {
     "dev": "bun run src/cli.ts",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "lint:staged": "lint-staged",
     "test": "bun test",
     "typecheck": "bunx tsc --noEmit",
-    "check": "bun run typecheck && bun test"
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun test",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deer-flow/deer-workflow.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "agent",
@@ -32,7 +41,15 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/bun": "latest",
-    "typescript": "latest"
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.2.0",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.65.0"
   }
 }

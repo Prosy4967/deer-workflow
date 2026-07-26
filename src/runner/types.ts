@@ -1,7 +1,4 @@
-import type {
-  LogWriter,
-  WorkflowEventEmitter,
-} from "../events";
+import type { LogWriter, WorkflowEventEmitter } from "../events";
 
 /**
  * Configuration accepted by {@link WorkflowRunner}.

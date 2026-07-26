@@ -1,9 +1,4 @@
-import {
-  mkdtemp,
-  readFile,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 
@@ -35,10 +30,7 @@ export class CodexAgentError extends Error {
    * @param message - Human-readable failure summary.
    * @param details - Exit status and captured process output.
    */
-  constructor(
-    message: string,
-    details: CodexAgentErrorDetails,
-  ) {
+  constructor(message: string, details: CodexAgentErrorDetails) {
     super(message);
     this.name = "CodexAgentError";
     this.exitCode = details.exitCode;
@@ -124,11 +116,7 @@ export class CodexAgent implements Agent {
       const cwd = resolve(options.cwd ?? this.#config.cwd ?? process.cwd());
       const subprocess = Bun.spawn(command, {
         cwd,
-        env: mergeEnvironment(
-          process.env,
-          this.#config.env,
-          options.env,
-        ),
+        env: mergeEnvironment(process.env, this.#config.env, options.env),
         stdin: "pipe",
         stdout: "pipe",
         stderr: "pipe",
@@ -150,8 +138,10 @@ export class CodexAgent implements Agent {
         ]);
 
         if (options.signal?.aborted) {
-          throw options.signal.reason ??
-            new DOMException("The Agent run was aborted.", "AbortError");
+          throw (
+            options.signal.reason ??
+            new DOMException("The Agent run was aborted.", "AbortError")
+          );
         }
 
         if (exitCode !== 0) {

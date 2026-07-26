@@ -13,12 +13,10 @@ const workflowContextStorage =
  * @typeParam TArgs - Expected Workflow argument type.
  * @returns The active context, or `undefined` outside {@link workflow}.
  */
-export function getWorkflowContext<
-  TArgs = unknown,
->(): WorkflowExecutionContext<TArgs> | undefined {
+export function getWorkflowContext<TArgs = unknown>():
+  WorkflowExecutionContext<TArgs> | undefined {
   return workflowContextStorage.getStore() as
-    | WorkflowExecutionContext<TArgs>
-    | undefined;
+    WorkflowExecutionContext<TArgs> | undefined;
 }
 
 /**

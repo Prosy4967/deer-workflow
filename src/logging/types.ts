@@ -14,4 +14,3 @@ export interface LoggingContext {
   /** Sink that receives logs in the current asynchronous call chain. */
   readonly sink: LogSink;
 }
-

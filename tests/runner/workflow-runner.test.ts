@@ -1,17 +1,11 @@
-import {
-  afterAll,
-  beforeAll,
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import type { WorkflowEvent } from "../../src/events";
-import { WorkflowRunner } from "../../src/runner";
+import type { WorkflowEvent } from "@deer-flow/workflow/events";
+import { WorkflowRunner } from "@deer-flow/workflow/runner";
 
 let temporaryDirectory: string;
 let successfulWorkflowPath: string;
@@ -23,12 +17,8 @@ beforeAll(async () => {
     join(tmpdir(), "deer-workflow-runner-test-"),
   );
 
-  const flowModuleUrl = pathToFileURL(
-    resolve("src/flow/index.ts"),
-  ).href;
-  const loggingModuleUrl = pathToFileURL(
-    resolve("src/logging/index.ts"),
-  ).href;
+  const flowModuleUrl = pathToFileURL(resolve("src/flow/index.ts")).href;
+  const loggingModuleUrl = pathToFileURL(resolve("src/logging/index.ts")).href;
 
   successfulWorkflowPath = join(temporaryDirectory, "successful.ts");
   await writeFile(
@@ -65,11 +55,7 @@ export default function run() {
   );
 
   simpleWorkflowPath = join(temporaryDirectory, "simple.ts");
-  await writeFile(
-    simpleWorkflowPath,
-    "export default () => 42;\n",
-    "utf8",
-  );
+  await writeFile(simpleWorkflowPath, "export default () => 42;\n", "utf8");
 });
 
 afterAll(async () => {
@@ -118,9 +104,9 @@ describe("WorkflowRunner", () => {
       logWriter: (line) => lines.push(line),
     });
 
-    await expect(
-      runner.run(failingWorkflowPath),
-    ).rejects.toThrow("verification failed");
+    await expect(runner.run(failingWorkflowPath)).rejects.toThrow(
+      "verification failed",
+    );
 
     const events = lines.map(parseEvent);
     expect(events.map((event) => event.type)).toEqual([

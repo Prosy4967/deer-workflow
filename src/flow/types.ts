@@ -17,13 +17,12 @@ export type ParallelTask<TOutput = unknown> = () => Awaitable<TOutput>;
  * Each task retains its inferred output type. A failed task is represented by
  * `null`.
  */
-export type ParallelResults<
-  TTasks extends readonly ParallelTask[],
-> = {
-  -readonly [TIndex in keyof TTasks]:
-    TTasks[TIndex] extends ParallelTask<infer TOutput>
-      ? Awaited<TOutput> | null
-      : never;
+export type ParallelResults<TTasks extends readonly ParallelTask[]> = {
+  -readonly [TIndex in keyof TTasks]: TTasks[TIndex] extends ParallelTask<
+    infer TOutput
+  >
+    ? Awaited<TOutput> | null
+    : never;
 };
 
 /**

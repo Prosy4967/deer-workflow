@@ -1,7 +1,4 @@
-import type {
-  LogWriter,
-  WorkflowEventListener,
-} from "./types";
+import type { LogWriter, WorkflowEventListener } from "./types";
 
 /**
  * Creates a listener that serializes each Workflow event as compact JSON.
@@ -22,4 +19,3 @@ export function createJsonEventWriter(
     logWriter(JSON.stringify(event));
   };
 }
-

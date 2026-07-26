@@ -1,8 +1,4 @@
-import type {
-  Agent,
-  AgentFunction,
-  AgentOptions,
-} from "./types";
+import type { Agent, AgentFunction, AgentOptions } from "./types";
 
 /**
  * Binds an {@link Agent} instance to the callable {@link AgentFunction} API.

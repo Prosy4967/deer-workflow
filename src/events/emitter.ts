@@ -70,4 +70,3 @@ export class WorkflowEventEmitter {
     return this.#listeners.size;
   }
 }
-

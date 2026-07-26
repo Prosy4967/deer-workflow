@@ -7,9 +7,7 @@ export type JsonPrimitive = boolean | number | string | null;
  * Any recursively serializable JSON value.
  */
 export type JsonValue =
-  | JsonPrimitive
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+  JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 
 /**
  * A JSON Schema document passed to an Agent runtime to constrain its final
@@ -27,9 +25,7 @@ export type JsonSchema = {
  * Filesystem and command-execution isolation available to an Agent.
  */
 export type AgentSandbox =
-  | "read-only"
-  | "workspace-write"
-  | "danger-full-access";
+  "read-only" | "workspace-write" | "danger-full-access";
 
 /**
  * Options shared by all Agent runtime implementations.

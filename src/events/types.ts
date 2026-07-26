@@ -84,8 +84,7 @@ export interface WorkflowErrorEventInput extends WorkflowEventContext {
 /**
  * Event emitted when a Workflow enters a named phase.
  */
-export interface WorkflowPhaseStartEventInput
-  extends WorkflowEventContext {
+export interface WorkflowPhaseStartEventInput extends WorkflowEventContext {
   readonly type: "workflow:phase:start";
 
   /** Phase title supplied to `phase()`. */
@@ -95,8 +94,7 @@ export interface WorkflowPhaseStartEventInput
 /**
  * Event emitted when a Workflow leaves a named phase.
  */
-export interface WorkflowPhaseEndEventInput
-  extends WorkflowEventContext {
+export interface WorkflowPhaseEndEventInput extends WorkflowEventContext {
   readonly type: "workflow:phase:end";
 
   /** Phase that has just completed. */
@@ -148,4 +146,3 @@ export type WorkflowEventListener = (event: WorkflowEvent) => void;
  * @param line - Compact JSON without a trailing newline.
  */
 export type LogWriter = (line: string) => void;
-

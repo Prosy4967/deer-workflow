@@ -3,8 +3,7 @@ import { getWorkflowContext } from "./context";
 import { toWorkflowEventContext } from "./context";
 import type { WorkflowExecutionContext } from "./types";
 
-const phaseStartTimes =
-  new WeakMap<WorkflowExecutionContext, number>();
+const phaseStartTimes = new WeakMap<WorkflowExecutionContext, number>();
 
 /**
  * Error raised when {@link phase} is called without an active Workflow.

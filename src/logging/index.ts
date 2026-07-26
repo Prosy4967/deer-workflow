@@ -1,9 +1,3 @@
-export {
-  log,
-  withLogSink,
-} from "./log";
+export { log, withLogSink } from "./log";
 
-export type {
-  LogSink,
-} from "./types";
-
+export type { LogSink } from "./types";

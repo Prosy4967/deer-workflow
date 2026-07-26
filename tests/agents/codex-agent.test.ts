@@ -1,18 +1,9 @@
-import {
-  afterAll,
-  beforeAll,
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import {
-  CodexAgent,
-  CodexAgentError,
-} from "../../src/agents/codex-agent";
+import { CodexAgent, CodexAgentError } from "@deer-flow/workflow/agents";
 
 let temporaryDirectory: string;
 let stubPath: string;

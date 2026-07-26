@@ -1,10 +1,6 @@
-import {
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { describe, expect, test } from "bun:test";
 
-import { parallel } from "../../src/flow/parallel";
+import { parallel } from "@deer-flow/workflow/flow";
 
 describe("parallel", () => {
   test("runs tasks concurrently and preserves input order", async () => {

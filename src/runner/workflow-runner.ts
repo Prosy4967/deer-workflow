@@ -1,14 +1,6 @@
-import {
-  createJsonEventWriter,
-  WorkflowEventEmitter,
-} from "../events";
-import {
-  runWithWorkflowEventEmitter,
-} from "../events/context";
-import {
-  getWorkflowContext,
-  toWorkflowEventContext,
-} from "../flow/context";
+import { createJsonEventWriter, WorkflowEventEmitter } from "../events";
+import { runWithWorkflowEventEmitter } from "../events/context";
+import { getWorkflowContext, toWorkflowEventContext } from "../flow/context";
 import { workflow } from "../flow/workflow";
 import type { WorkflowTarget } from "../flow/types";
 import { withLogSink } from "../logging";
@@ -65,9 +57,8 @@ export class WorkflowRunner {
       throw new Error("WorkflowRunner has been disposed.");
     }
 
-    return runWithWorkflowEventEmitter(
-      this.events,
-      () => withLogSink(
+    return runWithWorkflowEventEmitter(this.events, () =>
+      withLogSink(
         (message) => {
           const context = getWorkflowContext();
           if (!context) {
@@ -78,9 +69,7 @@ export class WorkflowRunner {
             type: "log",
             ...toWorkflowEventContext(context),
             message,
-            ...(context.phase === undefined
-              ? {}
-              : { phase: context.phase }),
+            ...(context.phase === undefined ? {} : { phase: context.phase }),
           });
         },
         () => workflow<TOutput, TArgs>(target, args),

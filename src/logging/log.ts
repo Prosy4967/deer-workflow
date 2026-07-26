@@ -1,7 +1,4 @@
-import {
-  getActiveLogSink,
-  runWithLogSink,
-} from "./context";
+import { getActiveLogSink, runWithLogSink } from "./context";
 import type { LogSink } from "./types";
 
 const defaultLogSink: LogSink = (message) => {
@@ -63,4 +60,3 @@ export function withLogSink<TOutput>(
 ): TOutput {
   return runWithLogSink(sink, callback);
 }
-
