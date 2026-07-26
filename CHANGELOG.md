@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-07-26
+
 - Added an interactive `🦌 Deer Workflow` TUI for long-running CLI commands.
   Workflow runs show metadata-backed phase states beside live Markdown logs,
   while default-mode redirected stderr retains JSONL events.
