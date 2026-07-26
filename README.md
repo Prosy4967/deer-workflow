@@ -86,6 +86,13 @@ deer-workflow create \
   > workflow.ts
 ```
 
+Alternatively, install the Skill in any Agent that supports Agent Skills, then
+ask that Agent to create a Workflow:
+
+```bash
+bunx skills add deerwork-ai/deer-workflow --skill workflow-creator
+```
+
 ## Run a Workflow
 
 ```bash

@@ -85,6 +85,13 @@ deer-workflow create \
   > workflow.ts
 ```
 
+也可以把该 Skill 安装到任意支持 Agent Skills 的 Agent 中，再让该 Agent 创建
+Workflow：
+
+```bash
+bunx skills add deerwork-ai/deer-workflow --skill workflow-creator
+```
+
 ## 运行 Workflow
 
 ```bash
