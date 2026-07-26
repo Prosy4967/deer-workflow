@@ -57,17 +57,11 @@ Codex CLI 与 Codex Desktop 是两个独立安装。安装 Desktop 应用不会�
 
 ## 安装命令行
 
-在首个 npm 版本发布前，直接从 GitHub 全局安装当前版本：
-
-```bash
-bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
-deer-workflow --help
-```
-
-`@deer-work-ai/workflow` 发布到 npm 后，可用下面的命令安装正式版本：
+从 npm 全局安装正式发布的 CLI：
 
 ```bash
 bun install --global @deer-work-ai/workflow
+deer-workflow --help
 ```
 
 不带 `--global` 的 `bun install` 只会安装当前项目的本地依赖，不会在全局安装

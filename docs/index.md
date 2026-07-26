@@ -42,18 +42,11 @@ not provide the `codex` executable required by the default Agent runtime. When
 the command is missing, Deer Workflow prints these installation steps before
 any Agent process starts.
 
-Until the first npm release, install `deer-workflow` globally from GitHub:
-
-```bash
-bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
-deer-workflow --help
-```
-
-After `@deer-work-ai/workflow` is published to npm, install a released version
-with:
+Install the released CLI globally from npm:
 
 ```bash
 bun install --global @deer-work-ai/workflow
+deer-workflow --help
 ```
 
 Bare `bun install` does not install the CLI globally. It installs local

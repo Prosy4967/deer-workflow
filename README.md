@@ -58,18 +58,11 @@ app does not install the `codex` terminal command.
 
 ## Install the CLI
 
-Until the first npm release, install the current CLI directly from GitHub:
-
-```bash
-bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
-deer-workflow --help
-```
-
-After `@deer-work-ai/workflow` is published to npm, install a released version
-with:
+Install the released CLI from npm:
 
 ```bash
 bun install --global @deer-work-ai/workflow
+deer-workflow --help
 ```
 
 Running `bun install` without `--global` only installs dependencies for the

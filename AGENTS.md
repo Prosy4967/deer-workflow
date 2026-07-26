@@ -12,10 +12,9 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Use strict TypeScript.
 - Publish the package as `@deer-work-ai/workflow` while keeping the CLI command
   named `deer-workflow`.
-- Until the first npm release, document
-  `bun install --global git+https://github.com/deerwork-ai/deer-workflow.git` as
-  the working global CLI installation. After publication, document
-  `bun install --global @deer-work-ai/workflow` as the released-package path.
+- Document `bun install --global @deer-work-ai/workflow` as the primary global
+  CLI installation. Use the GitHub installation only when explicitly
+  describing an unreleased repository snapshot.
 - Never describe bare `bun install` as a global installation; in this
   repository it installs local development dependencies and Git hooks.
 - Keep `deer-workflow run` as the Workflow execution command.
@@ -200,6 +199,53 @@ and the corresponding table in both language variants of `docs/index.md`.
   `src/cli.ts`. Introducing compiled `dist` artifacts, a build step, or Node.js
   runtime compatibility is a release architecture change that requires
   coordinated export, bin, installation, test, and documentation updates.
+
+## Release process
+
+- Releases are made from a clean `main` branch that is synchronized with
+  `origin/main`. Do not publish from an uncommitted worktree or an unpushed
+  commit.
+- Maintain a root `CHANGELOG.md`. Before every release, move the relevant
+  entries from `Unreleased` into a version heading with an ISO date, summarize
+  user-visible changes, and add a fresh empty `Unreleased` section. Create the
+  file before the next release if it does not exist.
+- Update the English and Simplified Chinese installation and API documentation
+  whenever a release changes package requirements, commands, or public
+  behavior.
+- Set an explicit release version with
+  `bun pm version <version> --no-git-tag-version`. Keep `package.json` and
+  `bun.lock` synchronized, and inspect their diff before continuing.
+- Confirm the version is not already present in the registry before publishing.
+  npm versions are immutable; never attempt to reuse a version that reached
+  the registry.
+- Before the next release, add and then maintain a `package.json` `files`
+  allowlist containing the runtime `src/` tree and bundled
+  `skills/workflow-creator/` tree. README, license, and package metadata may be
+  included as standard package files; exclude tests and repository tooling.
+- Run `bun run check` after the changelog, documentation, and version changes.
+  A release must not proceed unless the complete quality gate passes.
+- Inspect the npm payload with `bun pm pack --dry-run --ignore-scripts`.
+  Published files must be intentional and must not include tests, Git hooks,
+  repository instructions, credentials, or unrelated development artifacts.
+- Build the exact release tarball with
+  `bun pm pack --ignore-scripts --destination dist` in the ignored `dist/`
+  directory. Smoke-test that tarball in a new temporary project, including a
+  package import and `deer-workflow --help`.
+- Commit the version, changelog, documentation, and packaging changes together
+  as `release: prepare v<version>`, then push `main` before publishing.
+- Publish the tested tarball with
+  `bun publish <tarball> --access public --tag latest`. Never expose npm
+  passwords, one-time codes, recovery codes, or tokens in source, logs, commit
+  messages, or diagnostics.
+- Verify the exact version and `latest` dist-tag with `npm view`, then install
+  that exact registry version in a fresh temporary project and rerun the import
+  and CLI smoke tests.
+- Create and push the annotated `v<version>` Git tag only after the registry
+  verification succeeds. Then create the GitHub Release from that existing tag
+  with `gh release create v<version> --verify-tag --generate-notes`.
+- If publication fails before npm accepts the version, fix the cause, rerun all
+  checks, rebuild the tarball, and retry. If npm accepted a broken version,
+  never overwrite it; publish a new patch version.
 
 ## Process safety
 
