@@ -11,7 +11,7 @@ import {
   workflow,
   WorkflowLoadError,
   WorkflowNestingError,
-} from "@deer-flow/workflow/flow";
+} from "@deer-work/workflow/flow";
 
 let temporaryDirectory: string;
 let rootWorkflowPath: string;

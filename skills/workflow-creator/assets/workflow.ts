@@ -1,4 +1,4 @@
-import { agent, log, parallel, phase } from "@deer-flow/workflow";
+import { agent, log, parallel, phase } from "@deer-work/workflow";
 
 export const meta = {
   name: "planned-workflow",

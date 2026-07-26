@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import type { WorkflowEvent } from "@deer-flow/workflow/events";
-import { WorkflowRunner } from "@deer-flow/workflow/runner";
+import type { WorkflowEvent } from "@deer-work/workflow/events";
+import { WorkflowRunner } from "@deer-work/workflow/runner";
 
 let temporaryDirectory: string;
 let successfulWorkflowPath: string;

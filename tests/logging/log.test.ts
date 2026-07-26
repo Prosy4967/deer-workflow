@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { log, withLogSink } from "@deer-flow/workflow/logging";
+import { log, withLogSink } from "@deer-work/workflow/logging";
 
 describe("log", () => {
   test("routes messages to the active Log Sink", () => {

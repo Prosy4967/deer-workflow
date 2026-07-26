@@ -19,17 +19,17 @@ import {
   workflow,
   WorkflowEventEmitter,
   WorkflowRunner,
-} from "@deer-flow/workflow";
+} from "@deer-work/workflow";
 ```
 
 也可以使用等价的子路径：
 
 ```typescript
-import { agent } from "@deer-flow/workflow/agents";
-import { parallel, phase, pipeline, workflow } from "@deer-flow/workflow/flow";
-import { WorkflowEventEmitter } from "@deer-flow/workflow/events";
-import { log } from "@deer-flow/workflow/logging";
-import { WorkflowRunner } from "@deer-flow/workflow/runner";
+import { agent } from "@deer-work/workflow/agents";
+import { parallel, phase, pipeline, workflow } from "@deer-work/workflow/flow";
+import { WorkflowEventEmitter } from "@deer-work/workflow/events";
+import { log } from "@deer-work/workflow/logging";
+import { WorkflowRunner } from "@deer-work/workflow/runner";
 ```
 
 ## Workflow 模块契约
@@ -76,7 +76,7 @@ type WorkflowHandler<TArgs, TOutput> = (
 
 ### Runtime 上下文与 Imports
 
-Workflow API 需要从 `@deer-flow/workflow` 显式导入。CLI 不会把 `agent`、
+Workflow API 需要从 `@deer-work/workflow` 显式导入。CLI 不会把 `agent`、
 `parallel`、`pipeline`、`phase`、`workflow` 或 `log` 注入为全局变量。Runner
 会在调用 Handler 前建立异步执行上下文，使这些已导入的 API 能安全访问当前
 Workflow 的生命周期。

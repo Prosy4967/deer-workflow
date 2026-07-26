@@ -45,15 +45,15 @@ any Agent process starts.
 Until the first npm release, install `deer-workflow` globally from GitHub:
 
 ```bash
-bun install --global git+https://github.com/deer-flow/deer-workflow.git
+bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
 deer-workflow --help
 ```
 
-After `@deer-flow/workflow` is published to npm, install a released version
+After `@deer-work/workflow` is published to npm, install a released version
 with:
 
 ```bash
-bun install --global @deer-flow/workflow
+bun install --global @deer-work/workflow
 ```
 
 Bare `bun install` does not install the CLI globally. It installs local
@@ -71,7 +71,7 @@ inject `agent()`, `parallel()`, or other functions into the handler:
 
 ```typescript
 // workflows/research.ts
-import { agent, log, parallel, phase } from "@deer-flow/workflow";
+import { agent, log, parallel, phase } from "@deer-work/workflow";
 
 export const meta = {
   name: "topic-research",
@@ -149,7 +149,7 @@ cannot be combined.
 Use `WorkflowRunner` when starting the same Workflow from a host application:
 
 ```typescript
-import { WorkflowRunner } from "@deer-flow/workflow/runner";
+import { WorkflowRunner } from "@deer-work/workflow/runner";
 
 const runner = new WorkflowRunner();
 
@@ -225,7 +225,7 @@ development dependencies, runs the `prepare` script, and installs the Husky
 pre-commit hook:
 
 ```bash
-git clone https://github.com/deer-flow/deer-workflow.git
+git clone https://github.com/deerwork-ai/deer-workflow.git
 cd deer-workflow
 bun install
 ```

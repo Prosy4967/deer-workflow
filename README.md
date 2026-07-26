@@ -12,13 +12,13 @@
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
 [![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
 [![DeerFlow Stars](https://img.shields.io/github/stars/bytedance/deer-flow?label=DeerFlow%20Stars&logo=github)](https://github.com/bytedance/deer-flow)
-[![GitHub Stars](https://img.shields.io/github/stars/deer-flow/deer-workflow?style=flat&logo=github)](https://github.com/deer-flow/deer-workflow)
+[![GitHub Stars](https://img.shields.io/github/stars/deerwork-ai/deer-workflow?style=flat&logo=github)](https://github.com/deerwork-ai/deer-workflow)
 
 An open-source Dynamic Workflow runtime that combines deterministic TypeScript
 orchestration with replaceable Agent runtimes.
 
 `deer-workflow` is a pilot project for **DeerFlow 3.0**, also known as
-**DeerWork**. The package name is `@deer-flow/workflow`; the executable is
+**DeerWork**. The package name is `@deer-work/workflow`; the executable is
 named `deer-workflow`.
 
 ## Index
@@ -58,15 +58,15 @@ app does not install the `codex` terminal command.
 Until the first npm release, install the current CLI directly from GitHub:
 
 ```bash
-bun install --global git+https://github.com/deer-flow/deer-workflow.git
+bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
 deer-workflow --help
 ```
 
-After `@deer-flow/workflow` is published to npm, install a released version
+After `@deer-work/workflow` is published to npm, install a released version
 with:
 
 ```bash
-bun install --global @deer-flow/workflow
+bun install --global @deer-work/workflow
 ```
 
 Running `bun install` without `--global` only installs dependencies for the
@@ -131,7 +131,7 @@ Runner behavior, JSON Schema output, and programmatic usage.
 Clone the repository, then install its local dependencies and Git hooks:
 
 ```bash
-git clone https://github.com/deer-flow/deer-workflow.git
+git clone https://github.com/deerwork-ai/deer-workflow.git
 cd deer-workflow
 bun install
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "@deer-flow/workflow",
+  "name": "@deer-work/workflow",
   "version": "0.0.1",
   "description": "An open-source Dynamic Workflow runtime for AI agents.",
   "type": "module",
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deer-flow/deer-workflow.git"
+    "url": "git+https://github.com/deerwork-ai/deer-workflow.git"
   },
   "publishConfig": {
     "access": "public"

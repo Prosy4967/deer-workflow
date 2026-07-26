@@ -37,7 +37,7 @@ changes, or nested Workflows.
 
 The essential runtime model is:
 
-- Import APIs explicitly from `@deer-flow/workflow`.
+- Import APIs explicitly from `@deer-work/workflow`.
 - Export a pure-literal `meta` object containing `name`, `description`, and
   `phases`.
 - Export an `async` handler as `default` or as named `run`.
@@ -163,7 +163,7 @@ import {
   phase,
   pipeline,
   workflow,
-} from "@deer-flow/workflow";
+} from "@deer-work/workflow";
 
 export const meta = {
   name: "workflow-name",

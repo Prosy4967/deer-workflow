@@ -18,7 +18,7 @@ deer-workflow run ./examples/blog-writer/workflow.ts \
 Or run it programmatically through `WorkflowRunner`:
 
 ```typescript
-import { WorkflowRunner } from "@deer-flow/workflow/runner";
+import { WorkflowRunner } from "@deer-work/workflow/runner";
 
 const runner = new WorkflowRunner();
 

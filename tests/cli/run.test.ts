@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import type { WorkflowEvent } from "@deer-flow/workflow/events";
+import type { WorkflowEvent } from "@deer-work/workflow/events";
 
 const projectDirectory = resolve(".");
 const cliPath = resolve("src/cli.ts");

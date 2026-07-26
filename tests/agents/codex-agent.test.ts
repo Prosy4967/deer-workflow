@@ -7,7 +7,7 @@ import {
   CodexAgent,
   CodexAgentError,
   CodexCliNotFoundError,
-} from "@deer-flow/workflow/agents";
+} from "@deer-work/workflow/agents";
 
 let temporaryDirectory: string;
 let stubPath: string;

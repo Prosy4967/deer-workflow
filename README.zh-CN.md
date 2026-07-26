@@ -12,13 +12,13 @@
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
 [![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
 [![DeerFlow Stars](https://img.shields.io/github/stars/bytedance/deer-flow?label=DeerFlow%20Stars&logo=github)](https://github.com/bytedance/deer-flow)
-[![GitHub Stars](https://img.shields.io/github/stars/deer-flow/deer-workflow?style=flat&logo=github)](https://github.com/deer-flow/deer-workflow)
+[![GitHub Stars](https://img.shields.io/github/stars/deerwork-ai/deer-workflow?style=flat&logo=github)](https://github.com/deerwork-ai/deer-workflow)
 
 一个开源的 Dynamic Workflow Runtime：用确定性的 TypeScript 编排组织可替换的
 Agent Runtime。
 
 `deer-workflow` 是 **DeerFlow 3.0**（即 **DeerWork**）的试点项目。包名为
-`@deer-flow/workflow`，命令行名称为 `deer-workflow`。
+`@deer-work/workflow`，命令行名称为 `deer-workflow`。
 
 ## 目录
 
@@ -57,14 +57,14 @@ Codex CLI 与 Codex Desktop 是两个独立安装。安装 Desktop 应用不会�
 在首个 npm 版本发布前，直接从 GitHub 全局安装当前版本：
 
 ```bash
-bun install --global git+https://github.com/deer-flow/deer-workflow.git
+bun install --global git+https://github.com/deerwork-ai/deer-workflow.git
 deer-workflow --help
 ```
 
-`@deer-flow/workflow` 发布到 npm 后，可用下面的命令安装正式版本：
+`@deer-work/workflow` 发布到 npm 后，可用下面的命令安装正式版本：
 
 ```bash
-bun install --global @deer-flow/workflow
+bun install --global @deer-work/workflow
 ```
 
 不带 `--global` 的 `bun install` 只会安装当前项目的本地依赖，不会在全局安装
@@ -128,7 +128,7 @@ Agents、Flow Controls、Workflow Events、Logging、Runner 行为、JSON Schema
 克隆仓库，然后安装本地依赖和仓库管理的 Git Hooks：
 
 ```bash
-git clone https://github.com/deer-flow/deer-workflow.git
+git clone https://github.com/deerwork-ai/deer-workflow.git
 cd deer-workflow
 bun install
 ```
