@@ -22,11 +22,18 @@ Agent Runtime。
 ## 目录
 
 - [如何使用](#如何使用)
+  - [前置条件](#前置条件)
+  - [从源码试用](#从源码试用)
+  - [示例](#示例)
 - [如何开发](#如何开发)
+  - [开发文档](#开发文档)
+  - [初始化开发环境](#初始化开发环境)
+  - [验证修改](#验证修改)
+  - [贡献 Agent 集成](#贡献-agent-集成)
 
-## 如何使用
+# 如何使用
 
-### 前置条件
+## 前置条件
 
 安装 [Bun](https://bun.sh) 和
 [Codex CLI](https://github.com/openai/codex)，然后登录：
@@ -40,7 +47,7 @@ codex --version
 Codex CLI 与 Codex Desktop 是两个独立安装。安装 Desktop 应用不会同时安装
 终端中的 `codex` 命令。
 
-### 从源码试用
+## 从源码试用
 
 安装仓库依赖：
 
@@ -61,7 +68,7 @@ bun run dev -- run ./src/examples/deep-research/workflow.ts \
 deer-workflow run ./workflow.ts --input '{"question":"你的问题"}'
 ```
 
-### 示例
+## 示例
 
 运行 [Deep Research](./src/examples/deep-research/README.zh-CN.md)：
 
@@ -79,7 +86,9 @@ bun run dev -- run ./src/examples/blog-writer/workflow.ts \
 
 全局安装包后，将命令开头的 `bun run dev --` 替换为 `deer-workflow` 即可。
 
-### 深入了解
+# 如何开发
+
+## 开发文档
 
 - [快速入门](./docs/index.zh-CN.md)
 - [API 参考](./docs/api.zh-CN.md)
@@ -88,9 +97,7 @@ bun run dev -- run ./src/examples/blog-writer/workflow.ts \
 Agents、Flow Controls、Workflow Events、Logging、Runner 行为、JSON Schema
 输出和编程调用方式请详见 API 文档。
 
-## 如何开发
-
-### 初始化开发环境
+## 初始化开发环境
 
 安装依赖和仓库管理的 Git Hooks：
 
@@ -98,7 +105,7 @@ Agents、Flow Controls、Workflow Events、Logging、Runner 行为、JSON Schema
 bun install
 ```
 
-### 验证修改
+## 验证修改
 
 提交修改前运行完整门禁：
 
@@ -106,7 +113,7 @@ bun install
 bun run check
 ```
 
-### 贡献 Agent 集成
+## 贡献 Agent 集成
 
 Codex CLI 是默认 Agent Runtime，但不是架构上的硬依赖。欢迎贡献其他 Coding
 Agent 集成。

@@ -23,11 +23,18 @@ is named `deer-workflow`.
 ## Index
 
 - [How to use](#how-to-use)
+  - [Prerequisites](#prerequisites)
+  - [Try from source](#try-from-source)
+  - [Examples](#examples)
 - [How to develop](#how-to-develop)
+  - [Development documentation](#development-documentation)
+  - [Set up](#set-up)
+  - [Validate changes](#validate-changes)
+  - [Contribute an Agent integration](#contribute-an-agent-integration)
 
-## How to use
+# How to use
 
-### Prerequisites
+## Prerequisites
 
 Install [Bun](https://bun.sh) and
 [Codex CLI](https://github.com/openai/codex), then sign in:
@@ -41,7 +48,7 @@ codex --version
 Codex CLI and Codex Desktop are separate installations. Installing the Desktop
 app does not install the `codex` terminal command.
 
-### Try from source
+## Try from source
 
 Install this repository:
 
@@ -63,7 +70,7 @@ executable:
 deer-workflow run ./workflow.ts --input '{"question":"Your question"}'
 ```
 
-### Examples
+## Examples
 
 Run [Deep Research](./src/examples/deep-research/README.md):
 
@@ -82,18 +89,18 @@ bun run dev -- run ./src/examples/blog-writer/workflow.ts \
 After installing the package globally, replace `bun run dev --` with
 `deer-workflow`.
 
-### Learn more
+# How to develop
+
+## Development documentation
 
 - [Getting Started](./docs/index.md)
 - [API Reference](./docs/api.md)
-- [中文文档](./docs/index.zh-CN.md)
+- [中文开发文档](./docs/index.zh-CN.md)
 
 The API Reference covers Agents, Flow Controls, Workflow Events, Logging,
 Runner behavior, JSON Schema output, and programmatic usage.
 
-## How to develop
-
-### Set up
+## Set up
 
 Install dependencies and repository-managed Git hooks:
 
@@ -101,7 +108,7 @@ Install dependencies and repository-managed Git hooks:
 bun install
 ```
 
-### Validate changes
+## Validate changes
 
 Run the complete quality gate before submitting changes:
 
@@ -109,7 +116,7 @@ Run the complete quality gate before submitting changes:
 bun run check
 ```
 
-### Contribute an Agent integration
+## Contribute an Agent integration
 
 Codex CLI is the default Agent runtime, not an architectural dependency.
 Contributions for other Coding Agent integrations are welcome.
