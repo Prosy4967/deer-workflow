@@ -8,7 +8,14 @@
 规划 → 并行研究 → 汇编
 ```
 
-通过 `WorkflowRunner` 运行：
+通过 CLI 运行：
+
+```bash
+deer-workflow run ./src/examples/deep-research/workflow.ts \
+  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
+```
+
+也可以通过 `WorkflowRunner` 在程序中运行：
 
 ```typescript
 import { WorkflowRunner } from "@deer-flow/workflow/runner";

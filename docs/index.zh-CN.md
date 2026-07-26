@@ -32,10 +32,14 @@ bun install
 默认的 Agent 实现还要求系统中已安装并登录 Codex CLI：
 
 ```bash
-curl -fsSL https://chatgpt.com/codex/install.sh | sh
+npm install -g @openai/codex
 codex login
 codex --version
 ```
+
+Codex CLI 与 Codex Desktop 是两个独立安装。Desktop 应用不会提供默认 Agent
+Runtime 所需的 `codex` 可执行文件。检测不到命令时，Deer Workflow 会在启动
+任何 Agent 进程前输出上述安装步骤。
 
 Codex CLI 只是默认实现。其他 Coding Agent 可以通过实现 `Agent` 接口接入。
 
@@ -78,7 +82,17 @@ export default async function research(args: ResearchInput) {
 
 ## 运行 Workflow
 
-推荐通过 `WorkflowRunner` 从宿主程序启动 Workflow：
+从 Shell 启动 Workflow 时可以使用 CLI：
+
+```bash
+deer-workflow run ./src/examples/deep-research/workflow.ts \
+  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？"}'
+```
+
+最终结果写入 stdout，Workflow 事件以 JSON Lines 写入 stderr。较长的 JSON
+Input 可以使用 `--input-file` 或 stdin。
+
+从宿主程序启动同一个 Workflow 时使用 `WorkflowRunner`：
 
 ```typescript
 import { WorkflowRunner } from "@deer-flow/workflow/runner";

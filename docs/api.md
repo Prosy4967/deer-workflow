@@ -119,6 +119,12 @@ interface CodexAgentConfig {
 Failures and invalid schema-backed responses throw `CodexAgentError`, which
 retains `exitCode`, `stdout`, and `stderr` for diagnostics.
 
+When the configured executable cannot be resolved, `run()` throws
+`CodexCliNotFoundError` before creating temporary files or starting a process.
+Its message includes the official npm installation command, login and version
+checks, and explains that Codex CLI is installed separately from Codex
+Desktop.
+
 ## Flow
 
 ### `parallel()`
@@ -353,6 +359,19 @@ Converts any thrown value into a JSON-safe object containing `name`, `message`,
 and an optional `stack`.
 
 ## Runner
+
+### CLI `run`
+
+```text
+deer-workflow run <workflow>
+deer-workflow run <workflow> --input '<json>'
+deer-workflow run <workflow> --input-file <path>
+echo '<json>' | deer-workflow run <workflow>
+```
+
+The CLI constructs a `WorkflowRunner`, parses JSON input, and exits with a
+non-zero status when loading or execution fails. It writes the final result to
+stdout and JSONL events to stderr.
 
 ### `WorkflowRunner`
 

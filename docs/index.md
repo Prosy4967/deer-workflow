@@ -34,10 +34,15 @@ bun install
 The default Agent implementation also requires Codex CLI:
 
 ```bash
-curl -fsSL https://chatgpt.com/codex/install.sh | sh
+npm install -g @openai/codex
 codex login
 codex --version
 ```
+
+Codex CLI and Codex Desktop are separate installations. The Desktop app does
+not provide the `codex` executable required by the default Agent runtime. When
+the command is missing, Deer Workflow prints these installation steps before
+any Agent process starts.
 
 Codex CLI is the default implementation, not an architectural dependency.
 Other Coding Agents can be integrated by implementing the `Agent` interface.
@@ -83,7 +88,17 @@ Workflow succeeds or fails.
 
 ## Run a Workflow
 
-Use `WorkflowRunner` when starting a Workflow from a host application:
+Use the CLI when starting a Workflow from a shell:
+
+```bash
+deer-workflow run ./src/examples/deep-research/workflow.ts \
+  --input '{"question":"How are Agent Skills and Dynamic Workflows evolving?"}'
+```
+
+The result uses stdout, while Workflow events use stderr as JSON Lines. Use
+`--input-file` or stdin when inline JSON is inconvenient.
+
+Use `WorkflowRunner` when starting the same Workflow from a host application:
 
 ```typescript
 import { WorkflowRunner } from "@deer-flow/workflow/runner";

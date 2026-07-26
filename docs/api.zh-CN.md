@@ -117,6 +117,10 @@ interface CodexAgentConfig {
 运行失败或 Schema 响应无法解析时抛出 `CodexAgentError`。错误对象保留
 `exitCode`、`stdout` 和 `stderr`，便于宿主诊断。
 
+无法解析配置的可执行文件时，`run()` 会在创建临时文件或启动进程之前抛出
+`CodexCliNotFoundError`。错误信息包含官方 npm 安装命令、登录和版本检查，并
+明确说明 Codex CLI 与 Codex Desktop 需要分别安装。
+
 ## Flow
 
 ### `parallel()`
@@ -343,6 +347,18 @@ function serializeWorkflowError(error: unknown): SerializedWorkflowError;
 把任意抛出值转换为包含 `name`、`message` 和可选 `stack` 的 JSON-safe 对象。
 
 ## Runner
+
+### CLI `run`
+
+```text
+deer-workflow run <workflow>
+deer-workflow run <workflow> --input '<json>'
+deer-workflow run <workflow> --input-file <path>
+echo '<json>' | deer-workflow run <workflow>
+```
+
+CLI 会创建 `WorkflowRunner` 并解析 JSON Input。Workflow 加载或执行失败时返回
+非零退出码。最终结果写入 stdout，JSONL 事件写入 stderr。
 
 ### `WorkflowRunner`
 

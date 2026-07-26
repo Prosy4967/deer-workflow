@@ -8,7 +8,14 @@ This Workflow combines deterministic editorial stages with Agent judgment:
 Outline → Pipeline(Draft → Review) → Assembly
 ```
 
-Run it through `WorkflowRunner`:
+Run it from the CLI:
+
+```bash
+deer-workflow run ./src/examples/blog-writer/workflow.ts \
+  --input '{"topic":"Why Dynamic Workflows complement Agent Skills","audience":"Agent builders"}'
+```
+
+Or run it programmatically through `WorkflowRunner`:
 
 ```typescript
 import { WorkflowRunner } from "@deer-flow/workflow/runner";

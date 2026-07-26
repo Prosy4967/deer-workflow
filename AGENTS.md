@@ -12,6 +12,12 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Use strict TypeScript.
 - Publish the package as `@deer-flow/workflow` while keeping the CLI command
   named `deer-workflow`.
+- Keep `deer-workflow run` as the Workflow execution command. Reserve
+  `deer-workflow create` for future scaffolding work.
+- Route CLI Workflow events to stderr as JSON Lines and the final result to
+  stdout.
+- Accept optional run input from at most one of `--input`, `--input-file`, or
+  stdin.
 - Use the `tsconfig.json` path aliases to exercise public
   `@deer-flow/workflow/*` imports locally.
 - Keep runnable examples under `src/examples/<example-name>/`, with types in
@@ -23,6 +29,9 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Keep all Agent type aliases and interfaces in `src/agents/types.ts`.
 - Keep the vendor-neutral Agent binder in `src/agents/agent.ts`.
 - Keep Codex-specific process handling in `src/agents/codex-agent.ts`.
+- Detect a missing Codex executable before creating temporary files or starting
+  a process. The error must include official CLI installation steps and state
+  that Codex CLI and Codex Desktop are separate installations.
 - Re-export the default `agent()` function from `src/agents/index.ts`.
 - Keep all Flow type aliases and interfaces in `src/flow/types.ts`.
 - Keep deterministic orchestration primitives in `src/flow/`.
@@ -76,7 +85,7 @@ The root `package.json` is the source of truth for project commands:
 | `bun run check`         | Run type-checking, lint, format checks, and the complete test suite.     |
 
 Keep script names stable. When adding or changing a script, update this table
-and the corresponding table in `README.md`.
+and the corresponding table in both language variants of `docs/index.md`.
 
 ## Quality gates
 
@@ -121,6 +130,11 @@ and the corresponding table in `README.md`.
 - Keep English documentation at the canonical `*.md` path and place Simplified
   Chinese translations beside it as `*.zh-CN.md`. Add reciprocal language
   links near the top of both files.
+- Keep both root README files focused on project positioning, CLI trial
+  commands, examples, and documentation links. Put API and runtime details in
+  `docs/api.md` and `docs/api.zh-CN.md`.
+- Organize each root README into two primary reader paths: how to use the CLI
+  and how to develop or contribute to the repository.
 - Add `Co-authored-by: Codex <codex@openai.com>` to commits containing changes
   materially authored with Codex, unless the user requests otherwise.
 - Document every public API with TypeDoc comments, including parameters,

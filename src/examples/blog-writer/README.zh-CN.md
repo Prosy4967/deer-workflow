@@ -8,7 +8,14 @@
 大纲 → Pipeline（起草 → 审校）→ 汇编
 ```
 
-通过 `WorkflowRunner` 运行：
+通过 CLI 运行：
+
+```bash
+deer-workflow run ./src/examples/blog-writer/workflow.ts \
+  --input '{"topic":"为什么 Dynamic Workflow 可以与 Agent Skills 共生","audience":"Agent Builder"}'
+```
+
+也可以通过 `WorkflowRunner` 在程序中运行：
 
 ```typescript
 import { WorkflowRunner } from "@deer-flow/workflow/runner";
