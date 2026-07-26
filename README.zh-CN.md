@@ -11,12 +11,22 @@
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
 [![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
 [![DeerFlow Stars](https://img.shields.io/github/stars/bytedance/deer-flow?label=DeerFlow%20Stars&logo=github)](https://github.com/bytedance/deer-flow)
-[![GitHub Stars](https://img.shields.io/github/stars/deer-flow/deer-workflow?style=flat&logo=github)](https://github.com/deer-flow/deer-workflow)
 
 一个开源的 Dynamic Workflow Runtime：用 TypeScript 承载确定性编排，把需要
 语义理解和判断的工作交给可替换的 Agent Runtime。
 
 默认的 `agent()` 实现会运行一次完整的 Codex CLI Agent Loop。
+
+## 目录
+
+- [与 DeerFlow 的关系](#与-deerflow-的关系)
+- [前置条件](#前置条件)
+- [项目命令](#项目命令)
+- [Flow Controls](#flow-controls)
+- [Workflow Events 与 Runner](#workflow-events-与-runner)
+- [Logging](#logging)
+- [JSON Schema 输出](#json-schema-输出)
+- [接入其他 Coding Agent](#接入其他-coding-agent)
 
 ## 与 DeerFlow 的关系
 

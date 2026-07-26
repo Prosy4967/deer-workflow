@@ -11,12 +11,21 @@
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
 [![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
 [![DeerFlow Stars](https://img.shields.io/github/stars/bytedance/deer-flow?label=DeerFlow%20Stars&logo=github)](https://github.com/bytedance/deer-flow)
-[![GitHub Stars](https://img.shields.io/github/stars/deer-flow/deer-workflow?style=flat&logo=github)](https://github.com/deer-flow/deer-workflow)
 
 An open-source Dynamic Workflow runtime that keeps orchestration in TypeScript
 and delegates semantic work to replaceable Agent runtimes.
 
 The default `agent()` implementation runs a complete Codex CLI Agent Loop.
+
+## Index
+
+- [Relationship with DeerFlow](#relationship-with-deerflow)
+- [Prerequisite](#prerequisite)
+- [Project scripts](#project-scripts)
+- [Flow controls](#flow-controls)
+- [Workflow events and Runner](#workflow-events-and-runner)
+- [Logging](#logging)
+- [Bring Your Own Coding Agent](#bring-your-own-coding-agent)
 
 ## Relationship with DeerFlow
 
@@ -257,7 +266,7 @@ const result = await agent<{
 });
 ```
 
-## Bring your Coding Agent
+## Bring Your Own Coding Agent
 
 Codex CLI is the default implementation, not a hard dependency of the
 architecture. The `Agent` interface is intentionally vendor-neutral so other

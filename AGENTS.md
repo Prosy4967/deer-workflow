@@ -94,6 +94,8 @@ and the corresponding table in `README.md`.
 - Keep English documentation at the canonical `*.md` path and place Simplified
   Chinese translations beside it as `*.zh-CN.md`. Add reciprocal language
   links near the top of both files.
+- Add `Co-authored-by: Codex <codex@openai.com>` to commits containing changes
+  materially authored with Codex, unless the user requests otherwise.
 - Document every public API with TypeDoc comments, including parameters,
   return values, generics, thrown errors, and non-obvious runtime semantics.
 - Avoid `any`; use `unknown` at external boundaries and narrow it.
