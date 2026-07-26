@@ -14,6 +14,10 @@
     "./logging": "./src/logging/index.ts",
     "./runner": "./src/runner/index.ts"
   },
+  "files": [
+    "src",
+    "skills/workflow-creator"
+  ],
   "scripts": {
     "dev": "bun run src/cli.ts",
     "lint": "eslint . --max-warnings=0",
