@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-07-27
+
+- Added `ClaudeAgent`, a built-in Agent Harness backed by Claude Code CLI, with
+  text and JSON Schema output, sandbox mapping, cancellation, and actionable
+  installation errors.
 - Added `--agent codex|claude` to the `agent` and `create` CLI commands, with
   Codex remaining the default runtime.
 
