@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { CodexAgentError } from "./agents";
+import { ClaudeAgentError, CodexAgentError } from "./agents";
 import { runAgentCommand } from "./cli/agent";
 import { runCreateCommand } from "./cli/create";
 import { CliUsageError } from "./cli/errors";
@@ -27,7 +27,7 @@ try {
     throw new CliUsageError(`Unknown command: ${command}`);
   }
 } catch (error) {
-  if (error instanceof CodexAgentError) {
+  if (error instanceof CodexAgentError || error instanceof ClaudeAgentError) {
     console.error(error.message);
     if (error.stderr.trim()) {
       console.error(error.stderr.trimEnd());
@@ -44,10 +44,10 @@ function printUsage(): void {
   console.log(`deer-workflow
 
 Usage:
-  deer-workflow agent "Your task"
-  echo "Your task" | deer-workflow agent
-  deer-workflow create "Describe the Workflow"
-  echo "Describe the Workflow" | deer-workflow create
+  deer-workflow agent [--agent codex|claude] "Your task"
+  echo "Your task" | deer-workflow agent [--agent codex|claude]
+  deer-workflow create [--agent codex|claude] "Describe the Workflow"
+  echo "Describe the Workflow" | deer-workflow create [--agent codex|claude]
   deer-workflow skill install
   deer-workflow run <workflow> [--print] [--input '<json>']
   deer-workflow run <workflow> [--input-file <path>]
@@ -58,5 +58,8 @@ Commands:
   create  Generate a Workflow with the bundled workflow-creator Skill
   skill   Manage bundled Agent Skills
   run     Execute a Workflow module
+
+Agent selection:
+  --agent <codex|claude>  Agent runtime for agent/create (default: codex)
 `);
 }

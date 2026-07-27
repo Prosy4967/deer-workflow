@@ -19,18 +19,20 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   repository it installs local development dependencies and Git hooks.
 - Keep `deer-workflow run` as the Workflow execution command.
 - Keep `deer-workflow create` as the Agent-backed generator. It accepts a user
-  prompt from arguments or stdin, explicitly directs Codex to the bundled
-  `skills/workflow-creator/SKILL.md`, appends the user prompt, and writes only
-  generated source to stdout.
+  prompt from arguments or stdin, explicitly directs the selected Agent to the
+  bundled `skills/workflow-creator/SKILL.md`, appends the user prompt, and
+  writes only generated source to stdout.
+- Keep Codex as the default CLI Agent runtime. Let the `agent` and `create`
+  commands select Codex or Claude Code with `--agent codex|claude`. Document
+  the option and its Codex default in top-level, `agent`, and `create` help.
 - Resolve the bundled Skill relative to the installed CLI module so `create`
   works from a global GitHub or npm installation. Do not depend on the caller
   having installed `workflow-creator` in a Codex Skill search directory.
-- Run the create Agent with a read-only sandbox and allow execution outside a
-  Git repository. Strip one enclosing Markdown source fence before writing
-  stdout so shell redirection produces a runnable source file. Before starting
-  the Agent, write
-  `/* Generating a DeerFlow Dynamic Workflow with Codex */` to stdout so a
-  redirected target is immediately non-empty.
+- Run the create Agent with a read-only sandbox and allow Codex execution
+  outside a Git repository. Strip one enclosing Markdown source fence before
+  writing stdout so shell redirection produces a runnable source file. Before
+  starting the Agent, write a valid source comment naming the selected Agent
+  to stdout so a redirected target is immediately non-empty.
 - Route CLI Workflow events to stderr as JSON Lines when stderr is redirected.
   In an interactive terminal, drive the run TUI from typed events instead.
   Keep the final result on stdout in both default modes. With `run --print` or

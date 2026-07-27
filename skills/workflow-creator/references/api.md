@@ -56,11 +56,13 @@ instead drives the TUI. Default-mode redirected stderr remains pure JSONL.
 There is no global API injection. Caller input is the Handler's first
 parameter, conventionally named `args`; it is not a `globalThis` property.
 
-The CLI can ask the default Codex Agent to apply this bundled Skill and emit a
-new module as raw source:
+The CLI can ask the default Codex Agent, or Claude Code selected with
+`--agent claude`, to apply this bundled Skill and emit a new module as raw
+source:
 
 ```sh
 deer-workflow create "Describe the Workflow" > workflow.ts
+deer-workflow create --agent claude "Describe the Workflow" > workflow.ts
 ```
 
 `create` generates the module but does not execute it.

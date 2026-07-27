@@ -20,8 +20,9 @@ The project currently provides four groups of capabilities:
   execution progress.
 - `WorkflowRunner` converts execution into a JSON event stream for CLIs, user
   interfaces, and Journals.
-- `deer-workflow create` asks Codex to apply the bundled Workflow Creator Skill
-  to a user's orchestration request.
+- `deer-workflow create` asks Codex by default, or Claude Code when selected,
+  to apply the bundled Workflow Creator Skill to a user's orchestration
+  request.
 
 See the [API Reference](./api.md) for complete signatures and behavior.
 The bundled [Workflow Creator Skill](../skills/workflow-creator/SKILL.md)
@@ -54,7 +55,9 @@ dependencies when run inside a project and belongs to the development setup
 described below.
 
 Codex CLI is the default implementation, not an architectural dependency.
-Other Coding Agents can be integrated by implementing the `Agent` interface.
+The `agent` and `create` CLI commands accept `--agent codex|claude` and default
+to `codex`. Other Coding Agents can be integrated by implementing the `Agent`
+interface.
 
 ## Write your first Workflow
 
@@ -123,10 +126,11 @@ deer-workflow create \
   > workflow.ts
 ```
 
-`create` explicitly points Codex to the bundled
+`create` explicitly points the selected Agent to the bundled
 `skills/workflow-creator/SKILL.md`, appends the user prompt, and returns raw
-source on stdout. It also accepts the prompt from stdin. The generated module
-is not executed automatically.
+source on stdout. Codex is the default; pass `--agent claude` to use Claude
+Code, or `--agent codex` to select Codex explicitly. It also accepts the prompt
+from stdin. The generated module is not executed automatically.
 
 To use the same Skill from another Agent that supports Agent Skills, install
 the bundled copy into any existing user Skill directories:

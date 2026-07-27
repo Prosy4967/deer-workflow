@@ -47,6 +47,39 @@ await Bun.write(outputPath, JSON.stringify({
     "utf8",
   );
   await chmod(codexStubPath, 0o755);
+
+  const claudeStubPath = join(temporaryDirectory, "claude");
+  await writeFile(
+    claudeStubPath,
+    `#!/usr/bin/env bun
+const args = Bun.argv.slice(2);
+const prompt = await Bun.stdin.text();
+const permissionIndex = args.indexOf("--permission-mode");
+
+if (!args.includes("--json-schema")) {
+  console.error("missing --json-schema");
+  process.exit(8);
+}
+
+if (args[permissionIndex + 1] !== "plan") {
+  console.error("create must use the read-only sandbox");
+  process.exit(9);
+}
+
+console.log(JSON.stringify({
+  type: "result",
+  subtype: "success",
+  is_error: false,
+  result: "",
+  structured_output: {
+    source: prompt,
+    exampleArgsJson: JSON.stringify({ topic: "Example topic" }),
+  },
+}));
+`,
+    "utf8",
+  );
+  await chmod(claudeStubPath, 0o755);
 });
 
 afterAll(async () => {
@@ -82,6 +115,26 @@ describe("deer-workflow create", () => {
     );
   });
 
+  test("generates through Claude when selected", async () => {
+    const result = await runCli([
+      "create",
+      "--agent",
+      "claude",
+      "Research",
+      "three",
+      "markets",
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toStartWith(
+      "/* Generating a DeerFlow Dynamic Workflow with Claude */\n",
+    );
+    expect(result.stdout).toEndWith(
+      "--- USER REQUEST ---\nResearch three markets",
+    );
+  });
+
   test("rejects an empty prompt", async () => {
     const result = await runCli(["create"]);
 
@@ -93,11 +146,14 @@ describe("deer-workflow create", () => {
   });
 
   test("prints create help without starting an Agent", async () => {
-    const result = await runCli(["create", "--help"]);
+    const result = await runCli(["create", "--agent", "claude", "--help"]);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(
-      'deer-workflow create "Describe the Workflow"',
+      "deer-workflow create [--agent codex|claude]",
+    );
+    expect(result.stdout).toContain(
+      "--agent <codex|claude>  Agent runtime (default: codex)",
     );
   });
 
@@ -106,7 +162,7 @@ describe("deer-workflow create", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(
-      'deer-workflow create "Describe the Workflow"',
+      "deer-workflow create [--agent codex|claude]",
     );
     expect(result.stdout).toContain(
       "create  Generate a Workflow with the bundled workflow-creator Skill",

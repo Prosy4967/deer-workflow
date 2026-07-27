@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added `--agent codex|claude` to the `agent` and `create` CLI commands, with
+  Codex remaining the default runtime.
+
 ## 0.1.0 - 2026-07-26
 
 - Added an interactive `🦌 Deer Workflow` TUI for long-running CLI commands.

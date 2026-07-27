@@ -28,7 +28,7 @@ Agent Runtime。
   - [前置条件](#前置条件)
   - [安装命令行](#安装命令行)
   - [运行 Agent](#运行-agent)
-    - [改用 Claude Code CLI](#改用-claude-code-cli)
+    - [其他 Agent / Harness](#其他-agent--harness)
   - [创建 Workflow](#创建-workflow)
   - [运行 Workflow](#运行-workflow)
   - [示例](#示例)
@@ -36,7 +36,7 @@ Agent Runtime。
   - [开发文档](#开发文档)
   - [初始化开发环境](#初始化开发环境)
   - [验证修改](#验证修改)
-  - [贡献 Agent 集成](#贡献-agent-集成)
+  - [贡献 Agent / Harness 集成](#贡献-agent--harness-集成)
   - [许可证](#许可证)
 
 # 如何使用
@@ -74,13 +74,15 @@ deer-workflow --help
 
 ```bash
 deer-workflow agent "Inspect this repository"
+deer-workflow agent --agent claude "Inspect this repository"
 ```
 
-### 改用 Claude Code CLI
+### 其他 Agent / Harness
 
-`agent()` 辅助函数与 `deer-workflow agent` 命令默认使用 `CodexAgent`。如果想
-改用 [Claude Code CLI](https://docs.claude.com/en/docs/claude-code)，先安装并
-登录：
+`agent()` 辅助函数以及由 Agent 驱动的 CLI 命令默认使用 Codex Harness。
+Claude Code 也是内置 Harness；在 `agent` 或 `create` 上传入
+`--agent claude` 即可选择。请先安装并登录
+[Claude Code CLI](https://docs.claude.com/en/docs/claude-code)：
 
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -88,7 +90,7 @@ claude auth login
 claude --version
 ```
 
-然后直接使用 `ClaudeAgent` 替代默认的 `agent`：
+在 TypeScript 中，可以直接实例化 `ClaudeAgent`：
 
 ```typescript
 import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
@@ -102,11 +104,11 @@ Sandbox、模型和结构化输出选项详见
 
 ## 创建 Workflow
 
-描述需要的编排逻辑。该命令会让 Codex 执行内置的 `workflow-creator` Skill，并
-将生成的源码写入 stdout：
+描述需要的编排逻辑。该命令默认让 Codex 执行内置的 `workflow-creator` Skill，
+并将生成的源码写入 stdout；传入 `--agent claude` 可选择 Claude Code Harness：
 
 ```bash
-deer-workflow create \
+deer-workflow create --agent claude \
   "并行研究多个独立角度，验证研究结果，最后汇编成报告" \
   > workflow.ts
 ```
@@ -193,10 +195,10 @@ bun run dev -- --help
 bun run check
 ```
 
-## 贡献 Agent 集成
+## 贡献 Agent / Harness 集成
 
 Codex CLI 是默认 Agent Runtime，但不是架构上的硬依赖。`ClaudeAgent`（Claude
-Code CLI）已作为内置的替代实现；也欢迎贡献其他 Coding Agent 集成。
+Code CLI）是另一个内置 Harness；也欢迎贡献其他 Agent 和 Harness 集成。
 
 ## 许可证
 

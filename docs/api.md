@@ -225,8 +225,8 @@ class ClaudeAgent implements Agent {
 }
 ```
 
-An alternative runtime backed by the non-interactive `claude --print`
-command. Prompts are sent over stdin, responses are parsed from
+An Agent harness backed by the non-interactive `claude --print` command.
+Prompts are sent over stdin, responses are parsed from
 `--output-format json`, and sessions are ephemeral by default via
 `--no-session-persistence`.
 
@@ -513,13 +513,15 @@ and an optional `stack`.
 
 ### CLI
 
-Run a one-off task through the default Codex-backed Agent:
+Run a one-off task through Codex by default, or select Claude Code:
 
 ```text
 deer-workflow agent "Inspect this repository"
+deer-workflow agent --agent claude "Inspect this repository"
 echo "Inspect this repository" | deer-workflow agent
 ```
 
+`--agent` accepts `codex` or `claude` and defaults to `codex`.
 The final Agent response uses stdout. Usage and Agent errors use stderr and
 produce a non-zero exit status. In an interactive terminal, the command uses
 the same indefinite task TUI as `create` and `run`, including an estimated
@@ -529,22 +531,23 @@ Generate a Workflow through the bundled Workflow Creator Skill:
 
 ```text
 deer-workflow create "Describe the Workflow"
+deer-workflow create --agent claude "Describe the Workflow"
 echo "Describe the Workflow" | deer-workflow create
 ```
 
-`create` resolves the bundled Skill from the installed package, asks Codex to
-read it and its required references, then appends the user's prompt. Codex runs
-with a read-only sandbox and may run outside a Git repository. One enclosing
-Markdown source fence is removed, so stdout can be redirected directly to a
-`.ts` or `.js` file. Before generation begins, stdout receives
-`/* Generating a DeerFlow Dynamic Workflow with Codex */`, so a redirected
-target is immediately non-empty and remains valid source while Codex works.
-The generated Workflow is not executed.
+`create` resolves the bundled Skill from the installed package, asks the
+selected Agent to read it and its required references, then appends the user's
+prompt. The Agent runs with a read-only sandbox. Codex may also run outside a
+Git repository. One enclosing Markdown source fence is removed, so stdout can
+be redirected directly to a `.ts` or `.js` file. Before generation begins,
+stdout receives a valid source comment naming the selected Agent, so a
+redirected target is immediately non-empty while generation runs. The
+generated Workflow is not executed.
 
 When stderr is attached to an interactive terminal, `create` explains that
-Codex generation usually takes 1–5 minutes and shows an indefinite animated
-progress indicator with elapsed time until generation finishes. The indicator
-ends with a copyable next-step example,
+generation with the selected Agent usually takes 1–5 minutes and shows an
+indefinite animated progress indicator with elapsed time until generation
+finishes. The indicator ends with a copyable next-step example,
 `deer-workflow run ./workflow.ts --input '{"topic":"..."}'`, derived from the
 generated Workflow's example arguments. It is disabled when stderr is
 redirected, so generated source and scripted output remain unchanged.

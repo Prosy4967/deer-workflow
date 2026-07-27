@@ -1,6 +1,7 @@
-import { agent } from "../agents";
+import { agent, ClaudeAgent } from "../agents";
 import type { AgentFunction } from "../agents";
 import { TerminalUI } from "../tui";
+import { formatAgentName, parseAgentSelection } from "./agent-selection";
 import { CliUsageError } from "./errors";
 
 /**
@@ -13,18 +14,30 @@ import { CliUsageError } from "./errors";
  */
 export async function runAgentCommand(
   values: readonly string[],
-  runAgent: AgentFunction = agent,
+  runAgent?: AgentFunction,
 ): Promise<void> {
-  const prompt = await readAgentPrompt(values);
+  if (values.includes("--help") || values.includes("-h")) {
+    printAgentUsage();
+    return;
+  }
+
+  const selection = parseAgentSelection(values);
+  const prompt = await readAgentPrompt(selection.values);
+  const runtime =
+    selection.agentName === "claude" ? new ClaudeAgent() : undefined;
+  const selectedAgent: AgentFunction =
+    runAgent ??
+    (runtime ? (prompt, options) => runtime.run(prompt, options) : agent);
+  const agentName = formatAgentName(selection.agentName);
   const task = new TerminalUI().startTask({
-    activity: "Running the Agent",
+    activity: `Running the Agent with ${agentName}`,
     estimate: "Usually takes a few seconds to several minutes",
     successMessage: "Agent completed",
     failureMessage: "Agent failed",
   });
 
   try {
-    const output = await runAgent(prompt, { cwd: process.cwd() });
+    const output = await selectedAgent(prompt, { cwd: process.cwd() });
     task.succeed();
     console.log(output);
   } catch (error) {
@@ -33,6 +46,21 @@ export async function runAgentCommand(
   } finally {
     task.dispose();
   }
+}
+
+/**
+ * Prints help for the `agent` command.
+ *
+ * @internal
+ */
+export function printAgentUsage(): void {
+  console.log(`Usage:
+  deer-workflow agent [--agent codex|claude] "Your task"
+  echo "Your task" | deer-workflow agent [--agent codex|claude]
+
+Options:
+  --agent <codex|claude>  Agent runtime (default: codex)
+`);
 }
 
 async function readAgentPrompt(values: readonly string[]): Promise<string> {

@@ -2,9 +2,10 @@ import { access } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { CodexAgent } from "../agents";
+import { ClaudeAgent, CodexAgent } from "../agents";
 import type { AgentFunction, JsonSchema, JsonValue } from "../agents";
 import { TerminalUI } from "../tui";
+import { formatAgentName, parseAgentSelection } from "./agent-selection";
 import { CliUsageError } from "./errors";
 
 const workflowCreatorSkillPath = resolve(
@@ -15,9 +16,6 @@ const workflowCreatorSkillPath = resolve(
 const defaultCreateAgent = new CodexAgent({
   skipGitRepositoryCheck: true,
 });
-
-const generationPlaceholder =
-  "/* Generating a DeerFlow Dynamic Workflow with Codex */";
 
 interface CreatedWorkflow {
   readonly source: string;
@@ -38,9 +36,10 @@ const workflowCreatorOutputSchema: JsonSchema = {
  * Executes the `deer-workflow create` command.
  *
  * @remarks
- * The command explicitly directs the default Codex Agent to read the bundled
- * Workflow Creator Skill, then appends the user's request. Generated source is
- * written to stdout and may be redirected to a file.
+ * The command explicitly directs the selected Agent to read the bundled
+ * Workflow Creator Skill, then appends the user's request. Codex is selected
+ * by default. Generated source is written to stdout and may be redirected to
+ * a file.
  *
  * @param values - Prompt fragments following the `create` command.
  * @param runAgent - Agent function used to generate the Workflow.
@@ -49,27 +48,37 @@ const workflowCreatorOutputSchema: JsonSchema = {
  */
 export async function runCreateCommand(
   values: readonly string[],
-  runAgent: AgentFunction = (prompt, options) =>
-    defaultCreateAgent.run(prompt, options),
+  runAgent?: AgentFunction,
 ): Promise<void> {
-  if (values.length === 1 && (values[0] === "--help" || values[0] === "-h")) {
+  if (values.includes("--help") || values.includes("-h")) {
     printCreateUsage();
     return;
   }
 
-  const userPrompt = await readCreatePrompt(values);
+  const selection = parseAgentSelection(values);
+  const userPrompt = await readCreatePrompt(selection.values);
+  const claudeAgent =
+    selection.agentName === "claude" ? new ClaudeAgent() : undefined;
+  const selectedAgent: AgentFunction =
+    runAgent ??
+    (claudeAgent
+      ? (prompt, options) => claudeAgent.run(prompt, options)
+      : (prompt, options) => defaultCreateAgent.run(prompt, options));
+  const agentName = formatAgentName(selection.agentName);
   await assertWorkflowCreatorSkillExists();
-  process.stdout.write(`${generationPlaceholder}\n`);
+  process.stdout.write(
+    `/* Generating a DeerFlow Dynamic Workflow with ${agentName} */\n`,
+  );
 
   const task = new TerminalUI().startTask({
-    activity: "Generating a Workflow with Codex",
+    activity: `Generating a Workflow with ${agentName}`,
     estimate: "Usually takes 1–5 minutes",
     successMessage: "Workflow generated",
     failureMessage: "Workflow generation failed",
   });
 
   try {
-    const output = await runAgent<CreatedWorkflow>(
+    const output = await selectedAgent<CreatedWorkflow>(
       buildWorkflowCreatorPrompt(userPrompt),
       {
         cwd: process.cwd(),
@@ -167,8 +176,11 @@ function parseExampleArgsJson(
  */
 export function printCreateUsage(): void {
   console.log(`Usage:
-  deer-workflow create "Describe the Workflow"
-  echo "Describe the Workflow" | deer-workflow create
+  deer-workflow create [--agent codex|claude] "Describe the Workflow"
+  echo "Describe the Workflow" | deer-workflow create [--agent codex|claude]
+
+Options:
+  --agent <codex|claude>  Agent runtime (default: codex)
 
 Output:
   stdout  Generated Workflow source

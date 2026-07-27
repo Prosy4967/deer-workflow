@@ -18,8 +18,8 @@ Coding Agent。
 - `workflow()`、`phase()` 与 `log()`：加载 Workflow 模块并报告执行进度。
 - `WorkflowRunner`：把执行过程转换成可供 CLI、UI 或 Journal 消费的 JSON
   事件流。
-- `deer-workflow create`：让 Codex 根据用户的编排需求执行内置 Workflow
-  Creator Skill。
+- `deer-workflow create`：默认让 Codex，也可让显式选择的 Claude Code 根据
+  用户的编排需求执行内置 Workflow Creator Skill。
 
 完整的函数和类型签名参见 [API Reference](./api.zh-CN.md)。
 [Workflow Creator Skill](../skills/workflow-creator/SKILL.md) 可以指导 Coding
@@ -49,7 +49,9 @@ deer-workflow --help
 不带 `--global` 的 `bun install` 不会全局安装 CLI；它只在当前项目中安装本地
 依赖，属于下文的开发环境初始化步骤。
 
-Codex CLI 只是默认实现。其他 Coding Agent 可以通过实现 `Agent` 接口接入。
+Codex CLI 只是默认实现。CLI 的 `agent` 和 `create` 命令接受
+`--agent codex|claude`，默认值为 `codex`。其他 Coding Agent 可以通过实现
+`Agent` 接口接入。
 
 ## 编写第一个 Workflow
 
@@ -116,8 +118,10 @@ deer-workflow create \
   > workflow.ts
 ```
 
-`create` 会显式指向内置的 `skills/workflow-creator/SKILL.md`，在后面追加用户
-Prompt，并把原始源码写入 stdout。它也支持从 stdin 读取 Prompt，但不会自动
+`create` 会让选中的 Agent 显式读取内置的
+`skills/workflow-creator/SKILL.md`，在后面追加用户 Prompt，并把原始源码写入
+stdout。默认使用 Codex；传入 `--agent claude` 可选择 Claude Code，传入
+`--agent codex` 可显式选择 Codex。它也支持从 stdin 读取 Prompt，但不会自动
 执行生成的 Workflow。
 
 如需从其他支持 Agent Skills 的 Agent 使用同一个 Skill，可安装包内置版本：

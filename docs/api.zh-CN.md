@@ -216,7 +216,8 @@ class ClaudeAgent implements Agent {
 }
 ```
 
-基于非交互式 `claude --print` 命令的替代实现。Prompt 通过 stdin 发送，响应
+基于非交互式 `claude --print` 命令的 Agent Harness。Prompt 通过 stdin
+发送，响应
 从 `--output-format json` 中解析，默认通过 `--no-session-persistence` 使用
 临时会话。
 
@@ -492,13 +493,15 @@ function serializeWorkflowError(error: unknown): SerializedWorkflowError;
 
 ### CLI
 
-通过默认的 Codex Agent 运行一次任务：
+默认通过 Codex 运行一次任务，也可以选择 Claude Code：
 
 ```text
 deer-workflow agent "Inspect this repository"
+deer-workflow agent --agent claude "Inspect this repository"
 echo "Inspect this repository" | deer-workflow agent
 ```
 
+`--agent` 接受 `codex` 或 `claude`，默认值为 `codex`。
 Agent 的最终响应写入 stdout。用法错误和 Agent 错误写入 stderr，并返回非零
 退出码。在交互式终端中，该命令使用与 `create`、`run` 相同的无限任务 TUI，
 包括预估耗时与实时已用时间。
@@ -507,19 +510,20 @@ Agent 的最终响应写入 stdout。用法错误和 Agent 错误写入 stderr�
 
 ```text
 deer-workflow create "Describe the Workflow"
+deer-workflow create --agent claude "Describe the Workflow"
 echo "Describe the Workflow" | deer-workflow create
 ```
 
-`create` 从已安装的包中定位内置 Skill，让 Codex 读取它及其要求的 references，
-然后追加用户 Prompt。Codex 使用只读 Sandbox，并允许在 Git 仓库外运行。命令
-会移除包裹完整响应的一层 Markdown 源码围栏，因此 stdout 可以直接重定向到
-`.ts` 或 `.js` 文件。生成开始前，stdout 会先写入
-`/* Generating a DeerFlow Dynamic Workflow with Codex */`，因此重定向目标会
-立即成为非空且有效的源码文件。生成的 Workflow 不会自动执行。
+`create` 从已安装的包中定位内置 Skill，让选中的 Agent 读取它及其要求的
+references，然后追加用户 Prompt。Agent 使用只读 Sandbox；Codex 还允许在 Git
+仓库外运行。命令会移除包裹完整响应的一层 Markdown 源码围栏，因此 stdout
+可以直接重定向到 `.ts` 或 `.js` 文件。生成开始前，stdout 会先写入一条包含
+所选 Agent 名称的有效源码注释，因此重定向目标会立即成为非空文件。生成的
+Workflow 不会自动执行。
 
-当 stderr 连接交互式终端时，`create` 会说明 Codex 生成通常需要 1–5 分钟，
-并持续显示带已用时间的无限 loading 动画，直到生成完成；随后给出可复制的
-下一步示例，例如
+当 stderr 连接交互式终端时，`create` 会说明所选 Agent 的生成通常需要 1–5
+分钟，并持续显示带已用时间的无限 loading 动画，直到生成完成；随后给出可
+复制的下一步示例，例如
 `deer-workflow run ./workflow.ts --input '{"topic":"..."}'`；参数来自生成
 Workflow 的示例 args。stderr 被重定向时不会启用动画，因此生成源码和脚本
 输出保持不变。
