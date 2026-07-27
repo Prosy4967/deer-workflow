@@ -55,9 +55,10 @@ dependencies when run inside a project and belongs to the development setup
 described below.
 
 Codex CLI is the default implementation, not an architectural dependency.
-The `agent` and `create` CLI commands accept `--agent codex|claude` and default
-to `codex`. Other Coding Agents can be integrated by implementing the `Agent`
-interface.
+The `create` CLI command accepts `--agent codex|claude` and defaults to
+`codex`. Other Coding Agents can be integrated by implementing the `Agent`
+interface. The CLI has no standalone general-purpose Agent command; Workflows
+invoke Agent Loops through the TypeScript `agent()` API.
 
 ## Write your first Workflow
 

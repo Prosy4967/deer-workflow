@@ -22,9 +22,9 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
   prompt from arguments or stdin, explicitly directs the selected Agent to the
   bundled `skills/workflow-creator/SKILL.md`, appends the user prompt, and
   writes only generated source to stdout.
-- Keep Codex as the default CLI Agent runtime. Let the `agent` and `create`
-  commands select Codex or Claude Code with `--agent codex|claude`. Document
-  the option and its Codex default in top-level, `agent`, and `create` help.
+- Keep Codex as the default CLI Agent runtime. Let the `create` command select
+  Codex or Claude Code with `--agent codex|claude`. Document the option and its
+  Codex default in top-level and `create` help.
 - Resolve the bundled Skill relative to the installed CLI module so `create`
   works from a global GitHub or npm installation. Do not depend on the caller
   having installed `workflow-creator` in a Codex Skill search directory.
@@ -151,7 +151,6 @@ bun run prepare
 bun run typecheck
 bun test
 bun run check
-bun run dev -- agent "Inspect this repository"
 bun run dev -- create "Create a research Workflow"
 ```
 

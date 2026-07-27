@@ -65,6 +65,10 @@ deer-workflow create "Describe the Workflow" > workflow.ts
 deer-workflow create --agent claude "Describe the Workflow" > workflow.ts
 ```
 
+`--agent` is scoped to `create` and selects the generator harness. There is no
+standalone general-purpose Agent CLI command; generated Workflows invoke Agent
+Loops through the imported TypeScript `agent()` API.
+
 `create` generates the module but does not execute it.
 In an interactive terminal it shows an indefinite spinner, notes that
 generation usually takes 1–5 minutes, and finishes with the next-step example

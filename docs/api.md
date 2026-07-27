@@ -513,20 +513,6 @@ and an optional `stack`.
 
 ### CLI
 
-Run a one-off task through Codex by default, or select Claude Code:
-
-```text
-deer-workflow agent "Inspect this repository"
-deer-workflow agent --agent claude "Inspect this repository"
-echo "Inspect this repository" | deer-workflow agent
-```
-
-`--agent` accepts `codex` or `claude` and defaults to `codex`.
-The final Agent response uses stdout. Usage and Agent errors use stderr and
-produce a non-zero exit status. In an interactive terminal, the command uses
-the same indefinite task TUI as `create` and `run`, including an estimated
-duration and elapsed time.
-
 Generate a Workflow through the bundled Workflow Creator Skill:
 
 ```text
@@ -535,6 +521,10 @@ deer-workflow create --agent claude "Describe the Workflow"
 echo "Describe the Workflow" | deer-workflow create
 ```
 
+`create --agent` accepts `codex` or `claude` and defaults to `codex`. The
+option selects only the Workflow generator harness; there is no standalone
+general-purpose Agent CLI command. Use the TypeScript `agent()` API inside
+Workflow modules.
 `create` resolves the bundled Skill from the installed package, asks the
 selected Agent to read it and its required references, then appends the user's
 prompt. The Agent runs with a read-only sandbox. Codex may also run outside a

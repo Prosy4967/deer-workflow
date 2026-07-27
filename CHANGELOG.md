@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Removed the general-purpose `deer-workflow agent` CLI command. Agent runtime
+  selection remains available on `deer-workflow create`.
+
 ## 0.2.0 - 2026-07-27
 
 - Added `ClaudeAgent`, a built-in Agent Harness backed by Claude Code CLI, with

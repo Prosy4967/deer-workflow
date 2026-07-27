@@ -49,9 +49,10 @@ deer-workflow --help
 不带 `--global` 的 `bun install` 不会全局安装 CLI；它只在当前项目中安装本地
 依赖，属于下文的开发环境初始化步骤。
 
-Codex CLI 只是默认实现。CLI 的 `agent` 和 `create` 命令接受
-`--agent codex|claude`，默认值为 `codex`。其他 Coding Agent 可以通过实现
-`Agent` 接口接入。
+Codex CLI 只是默认实现。CLI 的 `create` 命令接受 `--agent codex|claude`，
+默认值为 `codex`。其他 Coding Agent 可以通过实现 `Agent` 接口接入。CLI
+不提供独立的通用 Agent 命令；Workflow 通过 TypeScript `agent()` API 调用
+Agent Loop。
 
 ## 编写第一个 Workflow
 

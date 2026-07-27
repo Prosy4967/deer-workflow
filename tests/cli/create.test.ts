@@ -167,6 +167,18 @@ describe("deer-workflow create", () => {
     expect(result.stdout).toContain(
       "create  Generate a Workflow with the bundled workflow-creator Skill",
     );
+    expect(result.stdout).toContain(
+      "--agent <codex|claude>  Agent runtime for create (default: codex)",
+    );
+    expect(result.stdout).not.toContain("deer-workflow agent");
+  });
+
+  test("rejects the removed agent command", async () => {
+    const result = await runCli(["agent", "Inspect the repository"]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("Unknown command: agent");
   });
 
   test("bundles the meta and args authoring contract", async () => {

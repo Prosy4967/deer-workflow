@@ -27,9 +27,8 @@ Agent Runtime。
 - [如何使用](#如何使用)
   - [前置条件](#前置条件)
   - [安装命令行](#安装命令行)
-  - [运行 Agent](#运行-agent)
-    - [其他 Agent / Harness](#其他-agent--harness)
   - [创建 Workflow](#创建-workflow)
+    - [其他 Agent / Harness](#其他-agent--harness)
   - [运行 Workflow](#运行-workflow)
   - [示例](#示例)
 - [如何开发](#如何开发)
@@ -70,19 +69,25 @@ deer-workflow --help
 不带 `--global` 的 `bun install` 只会安装当前项目的本地依赖，不会在全局安装
 `deer-workflow` 命令。
 
-## 运行 Agent
+## 创建 Workflow
+
+描述需要的编排逻辑。该命令默认让 Codex 执行内置的 `workflow-creator` Skill，
+并将生成的源码写入 stdout；传入 `--agent claude` 可选择 Claude Code Harness：
 
 ```bash
-deer-workflow agent "Inspect this repository"
-deer-workflow agent --agent claude "Inspect this repository"
+deer-workflow create --agent claude \
+  "并行研究多个独立角度，验证研究结果，最后汇编成报告" \
+  > workflow.ts
 ```
+
+`--agent` 是 `create` 的选项；CLI 不提供独立的通用 Agent 命令。Workflow
+模块通过导出的 TypeScript `agent()` API 运行 Agent Loop。
 
 ### 其他 Agent / Harness
 
-`agent()` 辅助函数以及由 Agent 驱动的 CLI 命令默认使用 Codex Harness。
-Claude Code 也是内置 Harness；在 `agent` 或 `create` 上传入
-`--agent claude` 即可选择。请先安装并登录
-[Claude Code CLI](https://docs.claude.com/en/docs/claude-code)：
+`agent()` 辅助函数和 `create` 命令默认使用 Codex Harness。Claude Code 也是
+内置 Harness；生成 Workflow 时可传入 `create --agent claude` 选择它。请先
+安装并登录 [Claude Code CLI](https://docs.claude.com/en/docs/claude-code)：
 
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -101,17 +106,6 @@ const result = await runtime.run("Inspect this repository.");
 
 Sandbox、模型和结构化输出选项详见
 [API 参考中的 `ClaudeAgent`](./docs/api.zh-CN.md#claudeagent)。
-
-## 创建 Workflow
-
-描述需要的编排逻辑。该命令默认让 Codex 执行内置的 `workflow-creator` Skill，
-并将生成的源码写入 stdout；传入 `--agent claude` 可选择 Claude Code Harness：
-
-```bash
-deer-workflow create --agent claude \
-  "并行研究多个独立角度，验证研究结果，最后汇编成报告" \
-  > workflow.ts
-```
 
 也可以安装内置 Skill，再让任意支持 Agent Skills 的 Agent 创建 Workflow：
 

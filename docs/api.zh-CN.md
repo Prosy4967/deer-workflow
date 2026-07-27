@@ -493,19 +493,6 @@ function serializeWorkflowError(error: unknown): SerializedWorkflowError;
 
 ### CLI
 
-默认通过 Codex 运行一次任务，也可以选择 Claude Code：
-
-```text
-deer-workflow agent "Inspect this repository"
-deer-workflow agent --agent claude "Inspect this repository"
-echo "Inspect this repository" | deer-workflow agent
-```
-
-`--agent` 接受 `codex` 或 `claude`，默认值为 `codex`。
-Agent 的最终响应写入 stdout。用法错误和 Agent 错误写入 stderr，并返回非零
-退出码。在交互式终端中，该命令使用与 `create`、`run` 相同的无限任务 TUI，
-包括预估耗时与实时已用时间。
-
 通过内置 Workflow Creator Skill 生成 Workflow：
 
 ```text
@@ -514,6 +501,9 @@ deer-workflow create --agent claude "Describe the Workflow"
 echo "Describe the Workflow" | deer-workflow create
 ```
 
+`create --agent` 接受 `codex` 或 `claude`，默认值为 `codex`。该选项只选择
+Workflow 生成器使用的 Harness；CLI 不提供独立的通用 Agent 命令。Workflow
+模块应使用 TypeScript `agent()` API。
 `create` 从已安装的包中定位内置 Skill，让选中的 Agent 读取它及其要求的
 references，然后追加用户 Prompt。Agent 使用只读 Sandbox；Codex 还允许在 Git
 仓库外运行。命令会移除包裹完整响应的一层 Markdown 源码围栏，因此 stdout

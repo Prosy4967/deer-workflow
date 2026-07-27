@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 
 import { ClaudeAgentError, CodexAgentError } from "./agents";
-import { runAgentCommand } from "./cli/agent";
 import { runCreateCommand } from "./cli/create";
 import { CliUsageError } from "./cli/errors";
 import { runWorkflowCommand } from "./cli/run";
@@ -12,8 +11,6 @@ const [command, ...values] = Bun.argv.slice(2);
 try {
   if (command === "--help" || command === "-h") {
     printUsage();
-  } else if (command === "agent") {
-    await runAgentCommand(values);
   } else if (command === "create") {
     await runCreateCommand(values);
   } else if (command === "run") {
@@ -44,8 +41,6 @@ function printUsage(): void {
   console.log(`deer-workflow
 
 Usage:
-  deer-workflow agent [--agent codex|claude] "Your task"
-  echo "Your task" | deer-workflow agent [--agent codex|claude]
   deer-workflow create [--agent codex|claude] "Describe the Workflow"
   echo "Describe the Workflow" | deer-workflow create [--agent codex|claude]
   deer-workflow skill install
@@ -54,12 +49,11 @@ Usage:
   echo '<json>' | deer-workflow run <workflow>
 
 Commands:
-  agent   Run a task through the default Coding Agent
   create  Generate a Workflow with the bundled workflow-creator Skill
   skill   Manage bundled Agent Skills
   run     Execute a Workflow module
 
 Agent selection:
-  --agent <codex|claude>  Agent runtime for agent/create (default: codex)
+  --agent <codex|claude>  Agent runtime for create (default: codex)
 `);
 }

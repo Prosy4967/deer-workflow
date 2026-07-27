@@ -28,9 +28,8 @@ named `deer-workflow`.
 - [How to use](#how-to-use)
   - [Prerequisites](#prerequisites)
   - [Install the CLI](#install-the-cli)
-  - [Run an Agent](#run-an-agent)
-    - [Other Agents / Harnesses](#other-agents--harnesses)
   - [Create a Workflow](#create-a-workflow)
+    - [Other Agents / Harnesses](#other-agents--harnesses)
   - [Run a Workflow](#run-a-workflow)
   - [Examples](#examples)
 - [How to develop](#how-to-develop)
@@ -71,18 +70,27 @@ deer-workflow --help
 Running `bun install` without `--global` only installs dependencies for the
 current project. It does not install the `deer-workflow` command globally.
 
-## Run an Agent
+## Create a Workflow
+
+Describe the orchestration you need. The command runs the bundled
+`workflow-creator` Skill through Codex by default and writes generated source
+to stdout. Pass `--agent claude` to select the Claude Code harness:
 
 ```bash
-deer-workflow agent "Inspect this repository"
-deer-workflow agent --agent claude "Inspect this repository"
+deer-workflow create --agent claude \
+  "Research several independent angles, verify the findings, and synthesize a report" \
+  > workflow.ts
 ```
+
+`--agent` belongs to `create`; the CLI does not expose a standalone
+general-purpose Agent command. Workflow modules use the exported TypeScript
+`agent()` API for Agent Loops.
 
 ### Other Agents / Harnesses
 
-The `agent()` helper and Agent-backed CLI commands use the Codex harness by
-default. Claude Code is also included as a built-in harness. Select it with
-`--agent claude` on `agent` or `create`. First install
+The `agent()` helper and `create` command use the Codex harness by default.
+Claude Code is also included as a built-in harness. Select it for Workflow
+generation with `create --agent claude`. First install
 [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) and sign in:
 
 ```bash
@@ -102,18 +110,6 @@ const result = await runtime.run("Inspect this repository.");
 
 See [`ClaudeAgent` in the API Reference](./docs/api.md#claudeagent) for
 sandbox, model, and structured-output options.
-
-## Create a Workflow
-
-Describe the orchestration you need. The command runs the bundled
-`workflow-creator` Skill through Codex by default and writes generated source
-to stdout. Pass `--agent claude` to select the Claude Code harness:
-
-```bash
-deer-workflow create --agent claude \
-  "Research several independent angles, verify the findings, and synthesize a report" \
-  > workflow.ts
-```
 
 Alternatively, install the bundled Skill for your Agents, then ask any Agent
 that supports Agent Skills to create a Workflow:
