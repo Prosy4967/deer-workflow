@@ -1,4 +1,4 @@
-# Deer Workflow
+# Deer Workflow：快速入门
 
 [English: README](../README.md) ·
 [Guide](./index.md) ·
@@ -7,27 +7,43 @@
 [快速入门](./index.zh-CN.md) ·
 [API](./api.zh-CN.md)
 
-Deer Workflow 是 DeerFlow 3.0（DeerWork）的试点项目。它用 TypeScript
-承载稳定、可重复的控制流，把需要理解语义和作出判断的工作交给可替换的
-Coding Agent。
+本指南将带你从一段自然语言编排需求开始，得到可运行、可观察的 TypeScript
+Workflow，并帮助你充分理解生成的代码，从而有信心继续编辑。
 
-项目目前提供四组核心能力：
+## 你将构建什么
 
-- `agent()`：运行完整的 Agent Loop，默认使用 Codex CLI。
-- `parallel()` 与 `pipeline()`：组织并发任务和流式处理阶段。
-- `workflow()`、`phase()` 与 `log()`：加载 Workflow 模块并报告执行进度。
-- `WorkflowRunner`：把执行过程转换成可供 CLI、UI 或 Journal 消费的 JSON
-  事件流。
-- `deer-workflow create`：默认让 Codex，也可让显式选择的 Claude Code 根据
-  用户的编排需求执行[内置 Workflow Creator Skill](../skills/workflow-creator/)。
+示例 Workflow 将会：
 
-完整的函数和类型签名参见 [API Reference](./api.zh-CN.md)。
-[Workflow Creator Skill](../skills/workflow-creator/SKILL.md) 可以指导 Coding
-Agent 按照当前已经实现的 API 契约生成 Workflow 模块。
+1. 并发研究多个主题；
+2. 让每条成功的研究结果依次经过起草和编辑阶段；
+3. 通过命名阶段和 Markdown 日志暴露进度；
+4. 在容忍部分任务失败的同时返回已完成的内容。
 
-## 安装命令行
+最终模块会使用 Deer Workflow 的核心原语：
 
-安装 Bun，以及默认 Agent Runtime 使用的 Codex CLI：
+| API          | 作用                                               |
+| ------------ | -------------------------------------------------- |
+| `agent()`    | 运行包含工具调用的完整 Agent Loop。                |
+| `parallel()` | 同时启动相互独立的惰性任务，并保持输入顺序。       |
+| `pipeline()` | 让每个项目独立经过一系列有序阶段。                 |
+| `phase()`    | 标记 Workflow 当前可观察的活动阶段。               |
+| `log()`      | 向 stderr 或活动 Event Stream 发送 Markdown 进度。 |
+| `meta`       | 声明 Workflow 标识、阶段计划和可运行的示例输入。   |
+
+## 理解模型
+
+Workflow 是一个普通的 TypeScript 模块，导出 `default` 函数或具名 `run` 函数。
+TypeScript 负责确定性决策：哪些工作并发执行、哪些阶段保持顺序、如何处理失败，
+以及最终返回什么结果。Coding Agent 则处理需要语言理解、判断或工具的工作。
+
+Workflow API 通过显式 ESM import 引入。Runner 会建立异步执行上下文，用于保存
+生命周期、阶段、事件和日志状态；它不会把 API 注入 `globalThis`，也不会通过
+解构的 Handler 参数传入这些 API。
+
+## 安装 CLI
+
+安装 [Bun](https://bun.sh)，以及默认 Agent Runtime 使用的
+[Codex CLI](https://github.com/openai/codex)：
 
 ```bash
 npm install -g @openai/codex
@@ -35,33 +51,54 @@ codex login
 codex --version
 ```
 
-Codex CLI 与 Codex Desktop 是两个独立安装。Desktop 应用不会提供默认 Agent
-Runtime 所需的 `codex` 可执行文件。检测不到命令时，Deer Workflow 会在启动
-任何 Agent 进程前输出上述安装步骤。
+Codex CLI 与 Codex Desktop 是两个独立安装。安装 Desktop 应用不会提供终端中的
+`codex` 命令。
 
-从 npm 全局安装正式发布的 CLI：
+全局安装正式发布的 Deer Workflow CLI：
 
 ```bash
 bun install --global @deerwork-ai/deer-workflow
 deer-workflow --help
 ```
 
-不带 `--global` 的 `bun install` 不会全局安装 CLI；它只在当前项目中安装本地
-依赖，属于下文的开发环境初始化步骤。
+直接运行 `bun install` 不会安装全局 CLI。在本仓库中，它会安装本地开发依赖和
+Git Hooks。
 
-Codex CLI 只是默认实现。CLI 的 `create` 命令接受 `--agent codex|claude`，
-默认值为 `codex`。其他 Coding Agent 可以通过实现 `Agent` 接口接入。CLI
-不提供独立的通用 Agent 命令；Workflow 通过 TypeScript `agent()` API 调用
-Agent Loop。
+Deer Workflow 也支持 Claude Code。如果更愿意使用它，请安装并登录
+[Claude Code CLI](https://claude.com/product/claude-code)，然后在下一步使用
+`create --agent claude`。
 
-## 编写第一个 Workflow
+## 创建第一个 Workflow
 
-Workflow 是一个导出 `default` 函数或 `run()` 函数的 TypeScript 模块。API
-通过普通 ESM import 引入；Runtime 不会向 Handler 注入 `agent()`、`parallel()`
-等函数：
+描述编排目标，而不是具体实现：
+
+```bash
+deer-workflow create \
+  "创建一个接收 topics 字符串数组的 Workflow，并行研究每个主题，让成功的研究结果依次经过起草和编辑，最后返回已完成的内容" \
+  > workflow.ts
+```
+
+`create` 会让选中的 Coding Agent 应用
+[内置的 `workflow-creator` Skill](../skills/workflow-creator/)。该 Skill
+定义公共 Workflow 契约、模式和源码模板；用户 Prompt 会追加到这些指令之后。
+
+生成过程运行在只读 Sandbox 中。命令从已安装的包内解析 Skill，因此全局安装
+不依赖单独的 Codex Skill 目录。生成的源码写入 stdout，但不会自动执行。
+
+如需让其他支持 Agent Skills 的 Agent 使用相同 Skill：
+
+```bash
+deer-workflow skill install
+```
+
+该命令会把 `workflow-creator` 复制到已有的 `~/.agents/skills` 和
+`~/.claude/skills` 目录，并报告每个实际安装或跳过的位置。
+
+## 阅读生成的模块
+
+生成的模块会遵循以下结构：
 
 ```typescript
-// workflows/research.ts
 import {
   agent,
   log,
@@ -71,24 +108,24 @@ import {
 } from "@deerwork-ai/deer-workflow";
 
 export const meta = {
-  name: "topic-research",
-  description: "Researches topics in parallel and synthesizes a report.",
-  phases: [{ title: "Research" }, { title: "Synthesis" }],
-  exampleArgs: { topics: ["Agent Skills", "Dynamic Workflow"] },
+  name: "topic-report",
+  description: "Researches topics and turns the findings into edited sections.",
+  phases: [{ title: "Research" }, { title: "Draft" }],
+  exampleArgs: { topics: ["Agent Skills", "Dynamic Workflows"] },
 };
 
-interface ResearchInput {
+interface WorkflowInput {
   topics: string[];
 }
 
-export default async function research(args: ResearchInput) {
+export default async function run(args: WorkflowInput) {
   phase("Research");
   log(`Researching ${args.topics.length} topics`);
 
   const findings = await parallel(
     args.topics.map(
       (topic) => () =>
-        agent(`Research this topic and summarize the findings: ${topic}`, {
+        agent(`Research and summarize: ${topic}`, {
           sandbox: "read-only",
         }),
     ),
@@ -97,72 +134,105 @@ export default async function research(args: ResearchInput) {
     (finding): finding is string => finding !== null,
   );
 
-  phase("Synthesis");
+  phase("Draft");
   const sections = await pipeline(
     completed,
-    (finding) => agent(`Draft a section:\n${finding}`),
-    (draft) => agent(`Edit for clarity:\n${draft}`),
+    (finding) =>
+      agent(`Draft a section:\n${finding}`, {
+        sandbox: "read-only",
+      }),
+    (draft) =>
+      agent(`Edit for clarity:\n${draft}`, {
+        sandbox: "read-only",
+      }),
   );
   const edited = sections.filter(
     (section): section is string => section !== null,
   );
   log(`Completed ${edited.length} sections`);
+
   return edited.join("\n\n");
 }
 ```
 
-`phase()` 用来标记一段可观察的工作阶段。切换到新阶段时，运行时会自动结束
-上一阶段；Workflow 成功或失败时，仍处于活动状态的阶段也会自动结束。
+### Metadata 即执行计划
 
-`meta` 为生成的 Workflow 提供稳定的名称、描述和阶段声明，其中的阶段标题应与
-`phase()` 调用完全一致；`exampleArgs` 的键应对应实际读取的 `args` 属性。Runner
-会校验该 Export、发送 `workflow:meta` 事件，CLI 会用它构建运行 TUI 的阶段列表
-和生成完成后的下一步命令。
+导出的 `meta` 对象是一个纯粹、JSON-safe 的字面量：
 
-## 创建 Workflow
+- `name` 是稳定的 kebab-case 标识符。
+- `description` 是简洁的单行摘要。
+- `phases` 有序且唯一，并与传给 `phase()` 的标题完全一致。
+- `exampleArgs` 是可运行的示例输入，其键与 Handler 的 `args` 参数中实际读取的
+  属性一致。
 
-DeerWork 会让选中的 Coding Agent 应用
-[Deer Workflow 内置的 `workflow-creator` Skill](../skills/workflow-creator/)，
-把自然语言描述的编排需求生成可运行的 TypeScript Workflow 模块：
+Runner 会校验该对象并发送 `workflow:meta`。交互式 CLI 使用其中的阶段构建
+TUI，而 `create` 使用 `exampleArgs` 展示可复制的下一步命令。
 
-```bash
-deer-workflow create \
-  "并行研究多个独立角度，验证关键结论，最后汇编成报告" \
-  > workflow.ts
-```
+### Flow 失败是显式值
 
-`create` 会在 Skill 指令后追加用户 Prompt，并把原始源码写入 stdout。默认
-使用 Codex；传入 `--agent claude` 可选择 Claude Code，传入 `--agent codex`
-可显式选择 Codex。它也支持从 stdin 读取 Prompt，但不会自动执行生成的
-Workflow。
+`parallel()` 会立即启动每个惰性任务，等待所有任务结束，并保持输入顺序。
+同步抛错或 Promise reject 会变成 `null`，且不会取消其他任务。
 
-如需从其他支持 Agent Skills 的 Agent 使用同一个 Skill，可安装包内置版本：
+`pipeline()` 让每个项目独立经过各个阶段。失败的项目会变成 `null`、跳过剩余
+阶段，并且不会取消其他项目。
 
-```bash
-deer-workflow skill install
-```
+这两个原语都不会静默重试、排队、快速失败或限制并发。调用方必须过滤或以其他
+方式处理 nullable 结果，并决定是否接受部分完成。
 
-该命令会检查 `~/.agents/skills` 与 `~/.claude/skills`，把
-`workflow-creator` 复制到其中已有的目录，并报告每个实际安装或跳过的位置。
+### 阶段属于整个 Workflow
+
+Workflow 的所有分支共享一个阶段状态。进入 `parallel()` 或 `pipeline()` 前
+设置 `phase()`；不要在并发任务或阶段内部改变 phase。重复设置当前标题是
+no-op。选择新标题会结束上一个阶段，Workflow 完成时也会结束任何活动阶段。
 
 ## 运行 Workflow
 
-从 Shell 启动 Workflow 时可以使用 CLI：
+以内联 JSON 形式传入示例参数：
 
 ```bash
-deer-workflow run ./examples/deep-research/workflow.ts \
-  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？","outputPath":"./report.html"}'
+deer-workflow run ./workflow.ts \
+  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
 ```
 
-Deep Research 会自行写入 HTML 文件，并在非 Print Mode 下通过 stdout 以简洁
-JSON 返回绝对文件地址。默认模式的 stderr 被重定向时，Workflow 事件以 JSON
-Lines 写入；交互式终端则显示阶段与 Markdown 日志双栏 TUI。添加 `--print`
-或 `-p` 会禁用 TUI，并在 stdout 每行流式输出一个 JSON 事件；该模式不会再
-单独输出返回值。服务端、CI/CD、任务队列、事件采集器和自动化进程管道应优先
-使用 Print Mode。较长的 JSON Input 可以使用 `--input-file` 或 stdin。
-`--input` 和 `--input-file` 都优先于 stdin，且两者不能同时使用。
+输入也可以来自 `--input-file` 或非空 stdin。`--input` 与 `--input-file` 不能
+同时使用；显式选项的优先级高于 stdin。
 
-从宿主程序启动同一个 Workflow 时使用 `WorkflowRunner`：
+### 交互模式
+
+当 stderr 连接交互式终端时，CLI 会在实时 TUI 中显示 Workflow 名称、模块路径、
+工作目录、声明的阶段和渲染后的 Markdown 日志。最终结果仍写入 stdout。
+
+stderr 被重定向时，TUI 会禁用，Workflow 事件将以 JSON Lines 写入 stderr。
+stdout 仍然只包含最终结果。
+
+### Print Mode
+
+在服务器、CI/CD、任务队列、进程管道和事件采集器中，使用 `--print` 或 `-p`：
+
+```bash
+deer-workflow run ./workflow.ts --print \
+  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
+```
+
+Print Mode 会禁用 TUI、向 stdout 每行写入一个紧凑的 Workflow 事件、把 stderr
+留给诊断信息，并抑制单独的最终结果。
+
+事件协议包括：
+
+- `workflow:start`
+- `workflow:meta`
+- `workflow:phase:start`
+- `workflow:phase:end`
+- `log`
+- `workflow:end`
+- `workflow:error`
+
+默认情况下，Workflow 参数和结果不会包含在事件中，避免外部 Event Stream
+意外暴露大量数据或敏感值。
+
+## 从 TypeScript 使用 Workflow
+
+由宿主应用启动 Workflow 时，使用 `WorkflowRunner`：
 
 ```typescript
 import { WorkflowRunner } from "@deerwork-ai/deer-workflow/runner";
@@ -170,76 +240,60 @@ import { WorkflowRunner } from "@deerwork-ai/deer-workflow/runner";
 const runner = new WorkflowRunner();
 
 try {
-  const report = await runner.run<string>("./workflows/research.ts", {
-    topics: ["Agent Skills", "Dynamic Workflow"],
+  const report = await runner.run<string>("./workflow.ts", {
+    topics: ["Agent Skills", "Dynamic Workflows"],
   });
+  console.log(report);
 } finally {
   runner.dispose();
 }
 ```
 
-独立使用 Runner 时，默认通过 `console.log()` 向 stdout 输出 JSON Lines。
-CLI 默认把这个输出目标覆盖为 stderr，从而让 stdout 只保留最终结果；
-`--print` / `-p` 模式则把事件保留在 stdout、禁用 TUI，并抑制单独的返回值：
+独立 Runner 默认向 stdout 每行写入一个 JSON 事件。它可以复用于并发执行；
+异步 Workflow 和 Logging 上下文保持隔离，而所有事件共享同一个单调递增的
+sequence。
 
-```json
-{"type":"workflow:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","sequence":1,"timestamp":"2026-07-26T08:00:00.000Z"}
-{"type":"workflow:meta","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","meta":{"name":"research","description":"Researches and synthesizes evidence.","phases":[{"title":"Research"},{"title":"Synthesis"}]},"sequence":2,"timestamp":"2026-07-26T08:00:00.005Z"}
-{"type":"workflow:phase:start","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","sequence":3,"timestamp":"2026-07-26T08:00:00.010Z"}
-{"type":"log","workflowId":"…","depth":0,"scriptPath":"/project/workflows/research.ts","phase":"Research","message":"## Researching\\n- **2 topics** in parallel","sequence":4,"timestamp":"2026-07-26T08:00:00.020Z"}
+Typed Subscription、自定义输出位置、嵌套 Workflow、结果序列化和完整事件 Schema
+详见 [API 参考](./api.zh-CN.md)。
+
+## 选择 Agent Runtime
+
+`create` 命令接受 `--agent codex|claude`，默认使用 Codex：
+
+```bash
+deer-workflow create --agent claude "描述需要的 Workflow" > workflow.ts
 ```
 
-可用的事件包括：
+该选项只选择生成器使用的 Harness。Workflow 模块通过导入的 TypeScript
+`agent()` API 调用 Agent Loop，其共享默认 Runtime 为 Codex。
 
-- `workflow:start`
-- `workflow:meta`
-- `workflow:end`
-- `workflow:error`
-- `workflow:phase:start`
-- `workflow:phase:end`
-- `log`
-
-事件默认不携带 Workflow 参数和返回值，避免将大对象或敏感业务数据意外写入
-日志。
-
-## 接入自己的输出
-
-`logWriter` 每次接收一行已经序列化好的 JSON：
+如需直接调用 Claude Code，请实例化它的 Adapter：
 
 ```typescript
-const lines: string[] = [];
-const runner = new WorkflowRunner({
-  logWriter: (line) => lines.push(line),
+import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
+
+const runtime = new ClaudeAgent({ model: "sonnet" });
+const result = await runtime.run("Inspect this repository.", {
+  sandbox: "read-only",
 });
 ```
 
-需要直接处理强类型事件时，可以订阅 Runner：
+两个 Adapter 都实现同一个厂商中立的 `Agent` 接口。提供 Schema 的调用会约束并
+解析最终响应，但不会把完整 Agent Loop 降级成单次模型生成。
 
-```typescript
-const unsubscribe = runner.on((event) => {
-  progressView.update(event);
-});
+## 继续学习
 
-await runner.run("./workflows/research.ts");
-unsubscribe();
-runner.dispose();
-```
+- [Deep Research](../examples/deep-research/README.zh-CN.md) 会界定研究主题、
+  并行研究多个独立角度、验证结论，并生成交互式 HTML 报告。
+- [Blog Writer](../examples/blog-writer/README.zh-CN.md) 使用 `pipeline()` 独立
+  起草和审阅各个章节。
+- [API 参考](./api.zh-CN.md) 记录每个公共函数、类型、事件和 Runtime 契约。
+- [Workflow Creator Skill](../skills/workflow-creator/SKILL.md) 包含 `create`
+  使用的生成指令。
 
-同一个 Runner 可以并发执行多个 Workflow。每次执行的异步上下文彼此隔离，
-事件则共享一个递增的 `sequence`，宿主可以据此还原实际发生顺序。
+## 开发仓库
 
-## 示例
-
-- [Deep Research](../examples/deep-research/README.zh-CN.md)：先探索研究
-  对象再制定计划，随后使用 `parallel()` 并行研究多个独立角度，并进行结构化
-  汇编，最后在 Present 阶段打开生成的 HTML。
-- [Blog Writer](../examples/blog-writer/README.zh-CN.md)：使用 `pipeline()`
-  让每个章节独立通过起草和审校阶段。
-
-## 开发门禁
-
-克隆仓库并在仓库中运行 `bun install`。它会安装本地开发依赖、执行 `prepare`
-脚本，并安装 Husky pre-commit Hook：
+克隆仓库，然后安装本地依赖和 Git Hooks：
 
 ```bash
 git clone https://github.com/deerwork-ai/deer-workflow.git
@@ -247,21 +301,26 @@ cd deer-workflow
 bun install
 ```
 
-每次提交时，先由 `lint-staged` 对 Git 暂存文件执行 ESLint 和 Prettier，再对
-完整 TypeScript 项目执行类型检查。Lint-staged 保留默认的临时 stash 和失败
-回滚机制，避免破坏部分暂存的工作区。
+交付修改前运行完整质量门禁：
 
-## 项目命令
+```bash
+bun run check
+```
 
-| 命令                    | 用途                           |
-| ----------------------- | ------------------------------ |
-| `bun run dev -- <args>` | 直接运行 CLI。                 |
-| `bun run lint`          | 使用 ESLint 检查代码。         |
-| `bun run lint:fix`      | 应用 ESLint 自动修复。         |
-| `bun run format`        | 使用 Prettier 格式化文件。     |
-| `bun run format:check`  | 检查格式但不修改文件。         |
-| `bun run lint:staged`   | 检查并格式化 Git 暂存文件。    |
-| `bun run prepare`       | 安装仓库管理的 Husky Hooks。   |
-| `bun test`              | 运行 `tests/` 下的全部测试。   |
-| `bun run typecheck`     | 执行 TypeScript 类型检查。     |
-| `bun run check`         | 运行全部类型、风格与测试检查。 |
+根目录的 `package.json` 是项目命令的事实来源：
+
+| 命令                    | 作用                                               |
+| ----------------------- | -------------------------------------------------- |
+| `bun run dev -- <args>` | 直接运行 TypeScript CLI 并转发参数。               |
+| `bun run lint`          | 检查 JavaScript 和 TypeScript，但不修改文件。      |
+| `bun run lint:fix`      | 应用安全的 ESLint 修复。                           |
+| `bun run format`        | 使用 Prettier 格式化支持的文件。                   |
+| `bun run format:check`  | 检查格式但不修改文件。                             |
+| `bun run lint:staged`   | 对 Git 暂存文件运行 pre-commit 检查。              |
+| `bun run prepare`       | 安装仓库管理的 Husky Hooks。                       |
+| `bun test`              | 运行顶层 `tests/` 目录下的全部测试。               |
+| `bun run typecheck`     | 对 `src/` 和 `tests/` 执行类型检查，但不输出文件。 |
+| `bun run check`         | 运行类型检查、Lint、格式检查和全部测试。           |
+
+每次提交都会通过 `lint-staged` 对暂存文件运行 ESLint 和 Prettier，然后对完整
+项目执行类型检查。Lint-staged 保留默认的备份 stash 和回滚行为。

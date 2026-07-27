@@ -1,11 +1,6 @@
-# deer-workflow
+简体中文 | [English](./README.md)
 
-[English: README](./README.md) ·
-[Guide](./docs/index.md) ·
-[API](./docs/api.md) |
-[简体中文：README](./README.zh-CN.md) ·
-[快速入门](./docs/index.zh-CN.md) ·
-[API](./docs/api.zh-CN.md)
+# deer-workflow
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/@deerwork-ai/deer-workflow)](https://www.npmjs.com/package/@deerwork-ai/deer-workflow)
@@ -15,190 +10,92 @@
 [![DeerFlow Stars](https://img.shields.io/github/stars/bytedance/deer-flow?label=DeerFlow%20Stars&logo=github)](https://github.com/bytedance/deer-flow)
 [![GitHub Stars](https://img.shields.io/github/stars/deerwork-ai/deer-workflow?style=flat&logo=github)](https://github.com/deerwork-ai/deer-workflow)
 
-一个开源的 Dynamic Workflow Runtime：用确定性的 TypeScript 编排组织可替换的
-Agent Runtime。
+一个用于构建可观察、可复用 Agent Graph 的开源 Dynamic Workflow Runtime。
 
-`deer-workflow` 是
-[**DeerFlow 3.0**](https://github.com/bytedance/deer-flow)（即 **DeerWork**）的
-试点项目。包名为 `@deerwork-ai/deer-workflow`，命令行名称为 `deer-workflow`。
+`deer-workflow` 是 [**DeerFlow 3.0**](https://github.com/bytedance/deer-flow)
+（即 **DeerWork**）的试点项目。
 
 ## 目录
 
+- [为什么选择 Deer Workflow](#为什么选择-deer-workflow)
 - [如何使用](#如何使用)
-  - [前置条件](#前置条件)
-  - [安装命令行](#安装命令行)
-  - [创建 Workflow](#创建-workflow)
-  - [运行 Workflow](#运行-workflow)
-  - [其他 Agent / Harness](#其他-agent--harness)
+  - [快速开始](#快速开始)
   - [示例](#示例)
+  - [文档](#文档)
 - [如何开发](#如何开发)
-  - [开发文档](#开发文档)
-  - [初始化开发环境](#初始化开发环境)
+  - [初始化](#初始化)
   - [验证修改](#验证修改)
-  - [贡献 Agent / Harness 集成](#贡献-agent--harness-集成)
+  - [参与贡献](#参与贡献)
   - [许可证](#许可证)
+
+# 为什么选择 Deer Workflow
+
+Deer Workflow 是一种代码优先的
+**[Graph Engineering](https://www.aibuilderclub.com/blog/graph-engineering-guide-2026)**
+实现：TypeScript 定义有效的执行路径，Coding Agent 则负责每个节点内部的语义工作。
+
+- **代码即计划。** 控制流、阶段、输入和失败处理都存在于可审阅的 TypeScript
+  中，而不是隐藏在不透明的 Agent 对话里。
+- **Agent 可替换。** Codex 是默认 Runtime，内置支持 Claude Code，而公共 Agent
+  接口保持厂商中立。
+- **执行可观察。** 交互式运行提供感知阶段状态的 TUI；自动化系统则可以消费
+  稳定的 JSONL Event Stream。
 
 # 如何使用
 
-## 前置条件
+## 快速开始
 
-- 安装 [Bun](https://bun.sh)。Bun 是快速、兼容 Node.js 的 JavaScript Runtime
-  和工具链；安装方式参见[官方指南](https://bun.sh/docs/installation)。
-- 安装并登录默认的 Agent Runtime
-  [Codex CLI](https://github.com/openai/codex)，或者
-  [Claude Code CLI](https://claude.com/product/claude-code)。使用 Claude Code
-  时，需要为 `deer-workflow create` 传入 `--agent claude`。
-
-## 安装命令行
-
-从 npm 全局安装正式发布的 CLI：
+安装 [Bun](https://bun.sh) 并登录
+[Codex CLI](https://github.com/openai/codex)，然后安装正式发布的 CLI：
 
 ```bash
 bun install --global @deerwork-ai/deer-workflow
-deer-workflow --help
 ```
 
-不带 `--global` 的 `bun install` 只会安装当前项目的本地依赖，不会在全局安装
-`deer-workflow` 命令。
-
-## 创建 Workflow
-
-Deer Workflow 通过 Coding Agent 使用
-[内置的 `workflow-creator` Skill](./skills/workflow-creator/)，把用户 Prompt
-转换成可运行的 TypeScript Workflow 脚本。`deer-workflow create` 默认使用
-Codex，并将生成的源码写入 stdout：
+描述需要的编排逻辑。Deer Workflow 会让 Codex 应用
+[内置的 `workflow-creator` Skill](./skills/workflow-creator/)，并写出可运行的
+TypeScript 模块：
 
 ```bash
 deer-workflow create \
-  "并行研究多个独立角度，验证研究结果，最后汇编成报告" \
+  "创建一个接收 topics 字符串数组的 Workflow，并行研究每个主题，最后汇编成报告" \
   > workflow.ts
 ```
 
-下面是生成的 `workflow.ts` 示例：
-
-```typescript
-import {
-  agent,
-  log,
-  parallel,
-  phase,
-  pipeline,
-} from "@deerwork-ai/deer-workflow";
-
-export const meta = {
-  name: "topic-report",
-  description: "Researches topics and turns the findings into edited sections.",
-  phases: [{ title: "Research" }, { title: "Draft" }],
-  exampleArgs: { topics: ["Agent Skills", "Dynamic Workflows"] },
-};
-
-export default async function run(args: { topics: string[] }) {
-  phase("Research");
-  log(`Researching ${args.topics.length} topics`);
-
-  const findings = await parallel(
-    args.topics.map(
-      (topic) => () =>
-        agent(`Research and summarize: ${topic}`, {
-          sandbox: "read-only",
-        }),
-    ),
-  );
-  const completed = findings.filter(
-    (finding): finding is string => finding !== null,
-  );
-
-  phase("Draft");
-  const sections = await pipeline(
-    completed,
-    (finding) => agent(`Draft a section:\n${finding}`),
-    (draft) => agent(`Edit for clarity:\n${draft}`),
-  );
-  const edited = sections.filter(
-    (section): section is string => section !== null,
-  );
-  log(`Completed ${edited.length} sections`);
-
-  return edited.join("\n\n");
-}
-```
-
-也可以为 Agent 安装[内置 Skill](./skills/workflow-creator/)，再让任意支持
-Agent Skills 的 Agent 创建 Workflow：
-
-```bash
-deer-workflow skill install
-```
-
-该命令会把 Skill 复制到已有的 `~/.agents/skills` 和 `~/.claude/skills` 目录，
-并报告实际安装或跳过的位置。
-
-## 运行 Workflow
+使用示例输入运行生成的 Workflow：
 
 ```bash
 deer-workflow run ./workflow.ts \
   --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
 ```
 
-### 在 TUI 模式下运行
+交互式终端会在实时 TUI 中显示阶段和 Markdown 日志。用于服务器、CI 和进程
+管道时，可添加 `--print` 或 `-p`，让 stdout 每行输出一个 JSON 事件。
 
-交互式运行会在双栏 TUI 中显示 `meta.phases` 和渲染后的 Markdown 日志；
-顶部标注 Workflow 名称、模块路径和工作目录，并用循环扫光突出活动 phase。
-默认模式下，stderr 被重定向时仍输出适合自动化处理的 JSONL。
-
-### 在事件流模式下运行
-
-在服务端、CI/CD、任务队列、进程管道和事件采集等自动化环境中，推荐使用
-`--print` / `-p`。它会让 stdout 只输出稳定的 Event Stream，每行一个 JSON
-事件：
-
-```bash
-deer-workflow run ./workflow.ts --print \
-  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
-```
-
-## 其他 Agent / Harness
-
-`agent()` 辅助函数和 `create` 命令默认使用 Codex Harness。Claude Code 也是
-内置 Harness；生成 Workflow 时可这样选择：
-
-```bash
-deer-workflow create --agent claude "描述需要的 Workflow"
-```
+想理解或编辑生成的模块？请继续阅读[快速入门指南](./docs/index.zh-CN.md)。
 
 ## 示例
 
-运行 [Deep Research](./examples/deep-research/README.zh-CN.md)：
+- [Deep Research](./examples/deep-research/README.zh-CN.md) 会发现研究角度、
+  并行调查、验证结论，并生成交互式 HTML 报告。
+- [Blog Writer](./examples/blog-writer/README.zh-CN.md) 会规划文章、通过 Pipeline
+  起草各节、执行审阅，并返回结构化结果。
 
-```bash
-deer-workflow run ./examples/deep-research/workflow.ts \
-  --input '{"question":"Agent Skills 与 Dynamic Workflows 正在如何演进？","outputPath":"./report.html"}'
-```
+这些示例位于本仓库中。运行文档中的命令前，请先克隆或下载仓库。
 
-运行 [Blog Writer](./examples/blog-writer/README.zh-CN.md)：
+## 文档
 
-```bash
-deer-workflow run ./examples/blog-writer/workflow.ts \
-  --input '{"topic":"Dynamic Workflow","audience":"Agent Builder"}'
-```
-
-这些路径指向本仓库内的文件，请先克隆或下载仓库再运行。
+- [快速入门](./docs/index.zh-CN.md) — 学习执行模型，并逐步构建一个 Workflow。
+- [API 参考](./docs/api.zh-CN.md) — 查看精确的函数、类型、事件和 Runtime 行为。
+- [Workflow Creator Skill](./skills/workflow-creator/SKILL.md) — 查看生成
+  Workflow 模块时使用的指令。
+- [English Documentation](./README.md)
 
 # 如何开发
 
-## 开发文档
+## 初始化
 
-- [快速入门](./docs/index.zh-CN.md)
-- [API 参考](./docs/api.zh-CN.md)
-- [Workflow Creator Skill](./skills/workflow-creator/SKILL.md)
-- [English Documentation](./docs/index.md)
-
-Agents、Flow Controls、Workflow Events、Logging、Runner 行为、JSON Schema
-输出和编程调用方式请详见 API 文档。
-
-## 初始化开发环境
-
-克隆仓库，然后安装本地依赖和仓库管理的 Git Hooks：
+克隆仓库，然后安装本地依赖和 Git Hooks：
 
 ```bash
 git clone https://github.com/deerwork-ai/deer-workflow.git
@@ -206,7 +103,7 @@ cd deer-workflow
 bun install
 ```
 
-开发时直接从源码运行 CLI：
+直接从源码运行 CLI：
 
 ```bash
 bun run dev -- --help
@@ -214,16 +111,18 @@ bun run dev -- --help
 
 ## 验证修改
 
-提交修改前运行完整门禁：
+提交修改前运行完整质量门禁：
 
 ```bash
 bun run check
 ```
 
-## 贡献 Agent / Harness 集成
+## 参与贡献
 
-Codex CLI 是默认 Agent Runtime，但不是架构上的硬依赖。`ClaudeAgent`（Claude
-Code CLI）是另一个内置 Harness；也欢迎贡献其他 Agent 和 Harness 集成。
+Codex CLI 是默认 Agent Runtime，但不是架构依赖。`ClaudeAgent` 是另一个内置
+Harness；欢迎为其他 Coding Agent 贡献集成。
+
+完整命令参考请参阅[快速入门指南](./docs/index.zh-CN.md#开发仓库)。
 
 ## 许可证
 
