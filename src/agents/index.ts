@@ -6,11 +6,17 @@ export type {
   AgentFunction,
   AgentOptions,
   AgentSandbox,
+  ClaudeAgentConfig,
   CodexAgentConfig,
   JsonPrimitive,
   JsonSchema,
   JsonValue,
 } from "./types";
+export {
+  ClaudeAgent,
+  ClaudeAgentError,
+  ClaudeCliNotFoundError,
+} from "./claude-agent";
 export {
   CodexAgent,
   CodexAgentError,

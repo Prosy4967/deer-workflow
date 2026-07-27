@@ -29,6 +29,7 @@ named `deer-workflow`.
   - [Prerequisites](#prerequisites)
   - [Install the CLI](#install-the-cli)
   - [Run an Agent](#run-an-agent)
+    - [Use Claude Code CLI instead of Codex](#use-claude-code-cli-instead-of-codex)
   - [Create a Workflow](#create-a-workflow)
   - [Run a Workflow](#run-a-workflow)
   - [Examples](#examples)
@@ -75,6 +76,30 @@ current project. It does not install the `deer-workflow` command globally.
 ```bash
 deer-workflow agent "Inspect this repository"
 ```
+
+### Use Claude Code CLI instead of Codex
+
+The `agent()` helper and the `deer-workflow agent` command use `CodexAgent` by
+default. To run on [Claude Code CLI](https://docs.claude.com/en/docs/claude-code)
+instead, install it and sign in:
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude auth login
+claude --version
+```
+
+Then use `ClaudeAgent` directly in place of the default `agent` export:
+
+```typescript
+import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
+
+const runtime = new ClaudeAgent({ model: "sonnet" });
+const result = await runtime.run("Inspect this repository.");
+```
+
+See [`ClaudeAgent` in the API Reference](./docs/api.md#claudeagent) for
+sandbox, model, and structured-output options.
 
 ## Create a Workflow
 
@@ -176,7 +201,8 @@ bun run check
 ## Contribute an Agent integration
 
 Codex CLI is the default Agent runtime, not an architectural dependency.
-Contributions for other Coding Agent integrations are welcome.
+`ClaudeAgent` (Claude Code CLI) ships as a built-in alternative; contributions
+for other Coding Agent integrations are welcome.
 
 ## License
 
