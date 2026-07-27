@@ -513,7 +513,9 @@ and an optional `stack`.
 
 ### CLI
 
-Generate a Workflow through the bundled Workflow Creator Skill:
+DeerWork asks the selected Coding Agent to apply
+[Deer Workflow's bundled Workflow Creator Skill](../skills/workflow-creator/)
+and generate a runnable TypeScript Workflow module:
 
 ```text
 deer-workflow create "Describe the Workflow"
@@ -525,12 +527,13 @@ echo "Describe the Workflow" | deer-workflow create
 option selects only the Workflow generator harness; there is no standalone
 general-purpose Agent CLI command. Use the TypeScript `agent()` API inside
 Workflow modules.
-`create` resolves the bundled Skill from the installed package, asks the
-selected Agent to read it and its required references, then appends the user's
-prompt. The Agent runs with a read-only sandbox. Codex may also run outside a
-Git repository. One enclosing Markdown source fence is removed, so stdout can
-be redirected directly to a `.ts` or `.js` file. Before generation begins,
-stdout receives a valid source comment naming the selected Agent, so a
+`create` resolves the
+[bundled Skill](../skills/workflow-creator/) from the installed package, asks
+the selected Agent to read it and its required references, then appends the
+user's prompt. The Agent runs with a read-only sandbox. Codex may also run
+outside a Git repository. One enclosing Markdown source fence is removed, so
+stdout can be redirected directly to a `.ts` or `.js` file. Before generation
+begins, stdout receives a valid source comment naming the selected Agent, so a
 redirected target is immediately non-empty while generation runs. The
 generated Workflow is not executed.
 
@@ -542,7 +545,8 @@ finishes. The indicator ends with a copyable next-step example,
 generated Workflow's example arguments. It is disabled when stderr is
 redirected, so generated source and scripted output remain unchanged.
 
-Install the bundled Workflow Creator Skill for other Agents:
+Install the
+[bundled Workflow Creator Skill](../skills/workflow-creator/) for other Agents:
 
 ```text
 deer-workflow skill install

@@ -21,11 +21,12 @@ The project currently provides four groups of capabilities:
 - `WorkflowRunner` converts execution into a JSON event stream for CLIs, user
   interfaces, and Journals.
 - `deer-workflow create` asks Codex by default, or Claude Code when selected,
-  to apply the bundled Workflow Creator Skill to a user's orchestration
-  request.
+  to apply the
+  [bundled Workflow Creator Skill](../skills/workflow-creator/) to a user's
+  orchestration request.
 
 See the [API Reference](./api.md) for complete signatures and behavior.
-The bundled [Workflow Creator Skill](../skills/workflow-creator/SKILL.md)
+[The bundled Workflow Creator Skill](../skills/workflow-creator/SKILL.md)
 teaches Coding Agents to generate modules against this implemented contract.
 
 ## Install the CLI
@@ -68,7 +69,13 @@ inject `agent()`, `parallel()`, or other functions into the handler:
 
 ```typescript
 // workflows/research.ts
-import { agent, log, parallel, phase } from "@deerwork-ai/deer-workflow";
+import {
+  agent,
+  log,
+  parallel,
+  phase,
+  pipeline,
+} from "@deerwork-ai/deer-workflow";
 
 export const meta = {
   name: "topic-research",
@@ -98,12 +105,16 @@ export default async function research(args: ResearchInput) {
   );
 
   phase("Synthesis");
-  return agent(
-    `Synthesize these findings into a concise report:\n${JSON.stringify(
-      completed,
-    )}`,
-    { sandbox: "read-only" },
+  const sections = await pipeline(
+    completed,
+    (finding) => agent(`Draft a section:\n${finding}`),
+    (draft) => agent(`Edit for clarity:\n${draft}`),
   );
+  const edited = sections.filter(
+    (section): section is string => section !== null,
+  );
+  log(`Completed ${edited.length} sections`);
+  return edited.join("\n\n");
 }
 ```
 
@@ -119,7 +130,10 @@ and the CLI uses it for the execution TUI and generated next command.
 
 ## Create a Workflow
 
-Generate a module by describing the desired orchestration:
+DeerWork asks the selected Coding Agent to apply
+[Deer Workflow's bundled `workflow-creator` Skill](../skills/workflow-creator/)
+and turn an orchestration description into a runnable TypeScript Workflow
+module:
 
 ```bash
 deer-workflow create \
@@ -127,8 +141,7 @@ deer-workflow create \
   > workflow.ts
 ```
 
-`create` explicitly points the selected Agent to the bundled
-`skills/workflow-creator/SKILL.md`, appends the user prompt, and returns raw
+`create` appends the user prompt to the Skill instructions and returns raw
 source on stdout. Codex is the default; pass `--agent claude` to use Claude
 Code, or `--agent codex` to select Codex explicitly. It also accepts the prompt
 from stdin. The generated module is not executed automatically.

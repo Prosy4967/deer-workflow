@@ -19,7 +19,7 @@ Coding Agent。
 - `WorkflowRunner`：把执行过程转换成可供 CLI、UI 或 Journal 消费的 JSON
   事件流。
 - `deer-workflow create`：默认让 Codex，也可让显式选择的 Claude Code 根据
-  用户的编排需求执行内置 Workflow Creator Skill。
+  用户的编排需求执行[内置 Workflow Creator Skill](../skills/workflow-creator/)。
 
 完整的函数和类型签名参见 [API Reference](./api.zh-CN.md)。
 [Workflow Creator Skill](../skills/workflow-creator/SKILL.md) 可以指导 Coding
@@ -62,7 +62,13 @@ Workflow 是一个导出 `default` 函数或 `run()` 函数的 TypeScript 模块
 
 ```typescript
 // workflows/research.ts
-import { agent, log, parallel, phase } from "@deerwork-ai/deer-workflow";
+import {
+  agent,
+  log,
+  parallel,
+  phase,
+  pipeline,
+} from "@deerwork-ai/deer-workflow";
 
 export const meta = {
   name: "topic-research",
@@ -92,12 +98,16 @@ export default async function research(args: ResearchInput) {
   );
 
   phase("Synthesis");
-  return agent(
-    `Synthesize these findings into a concise report:\n${JSON.stringify(
-      completed,
-    )}`,
-    { sandbox: "read-only" },
+  const sections = await pipeline(
+    completed,
+    (finding) => agent(`Draft a section:\n${finding}`),
+    (draft) => agent(`Edit for clarity:\n${draft}`),
   );
+  const edited = sections.filter(
+    (section): section is string => section !== null,
+  );
+  log(`Completed ${edited.length} sections`);
+  return edited.join("\n\n");
 }
 ```
 
@@ -111,7 +121,9 @@ export default async function research(args: ResearchInput) {
 
 ## 创建 Workflow
 
-描述希望得到的编排方式并生成模块：
+DeerWork 会让选中的 Coding Agent 应用
+[Deer Workflow 内置的 `workflow-creator` Skill](../skills/workflow-creator/)，
+把自然语言描述的编排需求生成可运行的 TypeScript Workflow 模块：
 
 ```bash
 deer-workflow create \
@@ -119,11 +131,10 @@ deer-workflow create \
   > workflow.ts
 ```
 
-`create` 会让选中的 Agent 显式读取内置的
-`skills/workflow-creator/SKILL.md`，在后面追加用户 Prompt，并把原始源码写入
-stdout。默认使用 Codex；传入 `--agent claude` 可选择 Claude Code，传入
-`--agent codex` 可显式选择 Codex。它也支持从 stdin 读取 Prompt，但不会自动
-执行生成的 Workflow。
+`create` 会在 Skill 指令后追加用户 Prompt，并把原始源码写入 stdout。默认
+使用 Codex；传入 `--agent claude` 可选择 Claude Code，传入 `--agent codex`
+可显式选择 Codex。它也支持从 stdin 读取 Prompt，但不会自动执行生成的
+Workflow。
 
 如需从其他支持 Agent Skills 的 Agent 使用同一个 Skill，可安装包内置版本：
 

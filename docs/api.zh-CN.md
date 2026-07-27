@@ -493,7 +493,9 @@ function serializeWorkflowError(error: unknown): SerializedWorkflowError;
 
 ### CLI
 
-通过内置 Workflow Creator Skill 生成 Workflow：
+DeerWork 会让选中的 Coding Agent 应用
+[Deer Workflow 内置的 Workflow Creator Skill](../skills/workflow-creator/)，
+生成可运行的 TypeScript Workflow 模块：
 
 ```text
 deer-workflow create "Describe the Workflow"
@@ -504,12 +506,12 @@ echo "Describe the Workflow" | deer-workflow create
 `create --agent` 接受 `codex` 或 `claude`，默认值为 `codex`。该选项只选择
 Workflow 生成器使用的 Harness；CLI 不提供独立的通用 Agent 命令。Workflow
 模块应使用 TypeScript `agent()` API。
-`create` 从已安装的包中定位内置 Skill，让选中的 Agent 读取它及其要求的
-references，然后追加用户 Prompt。Agent 使用只读 Sandbox；Codex 还允许在 Git
-仓库外运行。命令会移除包裹完整响应的一层 Markdown 源码围栏，因此 stdout
-可以直接重定向到 `.ts` 或 `.js` 文件。生成开始前，stdout 会先写入一条包含
-所选 Agent 名称的有效源码注释，因此重定向目标会立即成为非空文件。生成的
-Workflow 不会自动执行。
+`create` 从已安装的包中定位[内置 Skill](../skills/workflow-creator/)，让选中的
+Agent 读取它及其要求的 references，然后追加用户 Prompt。Agent 使用只读
+Sandbox；Codex 还允许在 Git 仓库外运行。命令会移除包裹完整响应的一层
+Markdown 源码围栏，因此 stdout 可以直接重定向到 `.ts` 或 `.js` 文件。生成
+开始前，stdout 会先写入一条包含所选 Agent 名称的有效源码注释，因此重定向
+目标会立即成为非空文件。生成的 Workflow 不会自动执行。
 
 当 stderr 连接交互式终端时，`create` 会说明所选 Agent 的生成通常需要 1–5
 分钟，并持续显示带已用时间的无限 loading 动画，直到生成完成；随后给出可
@@ -518,7 +520,8 @@ Workflow 不会自动执行。
 Workflow 的示例 args。stderr 被重定向时不会启用动画，因此生成源码和脚本
 输出保持不变。
 
-为其他 Agent 安装内置 Workflow Creator Skill：
+为其他 Agent 安装
+[内置 Workflow Creator Skill](../skills/workflow-creator/)：
 
 ```text
 deer-workflow skill install

@@ -28,8 +28,8 @@ Agent Runtime。
   - [前置条件](#前置条件)
   - [安装命令行](#安装命令行)
   - [创建 Workflow](#创建-workflow)
-    - [其他 Agent / Harness](#其他-agent--harness)
   - [运行 Workflow](#运行-workflow)
+  - [其他 Agent / Harness](#其他-agent--harness)
   - [示例](#示例)
 - [如何开发](#如何开发)
   - [开发文档](#开发文档)
@@ -42,20 +42,12 @@ Agent Runtime。
 
 ## 前置条件
 
-安装 [Bun](https://bun.sh) 和
-[Codex CLI](https://github.com/openai/codex)，然后登录：
-
-[Bun](https://bun.sh) 是快速、兼容 Node.js 的 JavaScript Runtime 和工具链；
-安装方式参见[官方指南](https://bun.sh/docs/installation)。
-
-```bash
-npm install -g @openai/codex
-codex login
-codex --version
-```
-
-Codex CLI 与 Codex Desktop 是两个独立安装。安装 Desktop 应用不会同时安装
-终端中的 `codex` 命令。
+- 安装 [Bun](https://bun.sh)。Bun 是快速、兼容 Node.js 的 JavaScript Runtime
+  和工具链；安装方式参见[官方指南](https://bun.sh/docs/installation)。
+- 安装并登录默认的 Agent Runtime
+  [Codex CLI](https://github.com/openai/codex)，或者
+  [Claude Code CLI](https://claude.com/product/claude-code)。使用 Claude Code
+  时，需要为 `deer-workflow create` 传入 `--agent claude`。
 
 ## 安装命令行
 
@@ -71,43 +63,68 @@ deer-workflow --help
 
 ## 创建 Workflow
 
-描述需要的编排逻辑。该命令默认让 Codex 执行内置的 `workflow-creator` Skill，
-并将生成的源码写入 stdout；传入 `--agent claude` 可选择 Claude Code Harness：
+Deer Workflow 通过 Coding Agent 使用
+[内置的 `workflow-creator` Skill](./skills/workflow-creator/)，把用户 Prompt
+转换成可运行的 TypeScript Workflow 脚本。`deer-workflow create` 默认使用
+Codex，并将生成的源码写入 stdout：
 
 ```bash
-deer-workflow create --agent claude \
+deer-workflow create \
   "并行研究多个独立角度，验证研究结果，最后汇编成报告" \
   > workflow.ts
 ```
 
-`--agent` 是 `create` 的选项；CLI 不提供独立的通用 Agent 命令。Workflow
-模块通过导出的 TypeScript `agent()` API 运行 Agent Loop。
-
-### 其他 Agent / Harness
-
-`agent()` 辅助函数和 `create` 命令默认使用 Codex Harness。Claude Code 也是
-内置 Harness；生成 Workflow 时可传入 `create --agent claude` 选择它。请先
-安装并登录 [Claude Code CLI](https://docs.claude.com/en/docs/claude-code)：
-
-```bash
-npm install -g @anthropic-ai/claude-code
-claude auth login
-claude --version
-```
-
-在 TypeScript 中，可以直接实例化 `ClaudeAgent`：
+下面是生成的 `workflow.ts` 示例：
 
 ```typescript
-import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
+import {
+  agent,
+  log,
+  parallel,
+  phase,
+  pipeline,
+} from "@deerwork-ai/deer-workflow";
 
-const runtime = new ClaudeAgent({ model: "sonnet" });
-const result = await runtime.run("Inspect this repository.");
+export const meta = {
+  name: "topic-report",
+  description: "Researches topics and turns the findings into edited sections.",
+  phases: [{ title: "Research" }, { title: "Draft" }],
+  exampleArgs: { topics: ["Agent Skills", "Dynamic Workflows"] },
+};
+
+export default async function run(args: { topics: string[] }) {
+  phase("Research");
+  log(`Researching ${args.topics.length} topics`);
+
+  const findings = await parallel(
+    args.topics.map(
+      (topic) => () =>
+        agent(`Research and summarize: ${topic}`, {
+          sandbox: "read-only",
+        }),
+    ),
+  );
+  const completed = findings.filter(
+    (finding): finding is string => finding !== null,
+  );
+
+  phase("Draft");
+  const sections = await pipeline(
+    completed,
+    (finding) => agent(`Draft a section:\n${finding}`),
+    (draft) => agent(`Edit for clarity:\n${draft}`),
+  );
+  const edited = sections.filter(
+    (section): section is string => section !== null,
+  );
+  log(`Completed ${edited.length} sections`);
+
+  return edited.join("\n\n");
+}
 ```
 
-Sandbox、模型和结构化输出选项详见
-[API 参考中的 `ClaudeAgent`](./docs/api.zh-CN.md#claudeagent)。
-
-也可以安装内置 Skill，再让任意支持 Agent Skills 的 Agent 创建 Workflow：
+也可以为 Agent 安装[内置 Skill](./skills/workflow-creator/)，再让任意支持
+Agent Skills 的 Agent 创建 Workflow：
 
 ```bash
 deer-workflow skill install
@@ -119,12 +136,17 @@ deer-workflow skill install
 ## 运行 Workflow
 
 ```bash
-deer-workflow run ./workflow.ts --input '{"question":"你的问题"}'
+deer-workflow run ./workflow.ts \
+  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
 ```
+
+### 在 TUI 模式下运行
 
 交互式运行会在双栏 TUI 中显示 `meta.phases` 和渲染后的 Markdown 日志；
 顶部标注 Workflow 名称、模块路径和工作目录，并用循环扫光突出活动 phase。
 默认模式下，stderr 被重定向时仍输出适合自动化处理的 JSONL。
+
+### 在事件流模式下运行
 
 在服务端、CI/CD、任务队列、进程管道和事件采集等自动化环境中，推荐使用
 `--print` / `-p`。它会让 stdout 只输出稳定的 Event Stream，每行一个 JSON
@@ -132,7 +154,16 @@ deer-workflow run ./workflow.ts --input '{"question":"你的问题"}'
 
 ```bash
 deer-workflow run ./workflow.ts --print \
-  --input '{"question":"你的问题"}' > events.jsonl
+  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
+```
+
+## 其他 Agent / Harness
+
+`agent()` 辅助函数和 `create` 命令默认使用 Codex Harness。Claude Code 也是
+内置 Harness；生成 Workflow 时可这样选择：
+
+```bash
+deer-workflow create --agent claude "描述需要的 Workflow"
 ```
 
 ## 示例

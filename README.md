@@ -29,8 +29,8 @@ named `deer-workflow`.
   - [Prerequisites](#prerequisites)
   - [Install the CLI](#install-the-cli)
   - [Create a Workflow](#create-a-workflow)
-    - [Other Agents / Harnesses](#other-agents--harnesses)
   - [Run a Workflow](#run-a-workflow)
+  - [Other Agents / Harnesses](#other-agents--harnesses)
   - [Examples](#examples)
 - [How to develop](#how-to-develop)
   - [Development documentation](#development-documentation)
@@ -43,20 +43,13 @@ named `deer-workflow`.
 
 ## Prerequisites
 
-Install [Bun](https://bun.sh) and
-[Codex CLI](https://github.com/openai/codex), then sign in:
-
-[Bun](https://bun.sh) is a fast, Node.js-compatible JavaScript runtime and
-toolkit; see its [installation guide](https://bun.sh/docs/installation).
-
-```bash
-npm install -g @openai/codex
-codex login
-codex --version
-```
-
-Codex CLI and Codex Desktop are separate installations. Installing the Desktop
-app does not install the `codex` terminal command.
+- Install [Bun](https://bun.sh). Bun is a fast, Node.js-compatible JavaScript
+  runtime and toolkit; see its
+  [installation guide](https://bun.sh/docs/installation).
+- Install and sign in to [Codex CLI](https://github.com/openai/codex), the
+  default Agent runtime, or
+  [Claude Code CLI](https://claude.com/product/claude-code). When using Claude
+  Code, pass `--agent claude` to `deer-workflow create`.
 
 ## Install the CLI
 
@@ -72,46 +65,69 @@ current project. It does not install the `deer-workflow` command globally.
 
 ## Create a Workflow
 
-Describe the orchestration you need. The command runs the bundled
-`workflow-creator` Skill through Codex by default and writes generated source
-to stdout. Pass `--agent claude` to select the Claude Code harness:
+Deer Workflow uses
+[a bundled `workflow-creator` Skill](./skills/workflow-creator/) to turn a user
+prompt into a runnable TypeScript Workflow script through a Coding Agent.
+`deer-workflow create` uses Codex by default and writes the generated source to
+stdout:
 
 ```bash
-deer-workflow create --agent claude \
+deer-workflow create \
   "Research several independent angles, verify the findings, and synthesize a report" \
   > workflow.ts
 ```
 
-`--agent` belongs to `create`; the CLI does not expose a standalone
-general-purpose Agent command. Workflow modules use the exported TypeScript
-`agent()` API for Agent Loops.
-
-### Other Agents / Harnesses
-
-The `agent()` helper and `create` command use the Codex harness by default.
-Claude Code is also included as a built-in harness. Select it for Workflow
-generation with `create --agent claude`. First install
-[Claude Code CLI](https://docs.claude.com/en/docs/claude-code) and sign in:
-
-```bash
-npm install -g @anthropic-ai/claude-code
-claude auth login
-claude --version
-```
-
-From TypeScript, instantiate `ClaudeAgent` directly:
+Here's an example of the generated `workflow.ts`:
 
 ```typescript
-import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
+import {
+  agent,
+  log,
+  parallel,
+  phase,
+  pipeline,
+} from "@deerwork-ai/deer-workflow";
 
-const runtime = new ClaudeAgent({ model: "sonnet" });
-const result = await runtime.run("Inspect this repository.");
+export const meta = {
+  name: "topic-report",
+  description: "Researches topics and turns the findings into edited sections.",
+  phases: [{ title: "Research" }, { title: "Draft" }],
+  exampleArgs: { topics: ["Agent Skills", "Dynamic Workflows"] },
+};
+
+export default async function run(args: { topics: string[] }) {
+  phase("Research");
+  log(`Researching ${args.topics.length} topics`);
+
+  const findings = await parallel(
+    args.topics.map(
+      (topic) => () =>
+        agent(`Research and summarize: ${topic}`, {
+          sandbox: "read-only",
+        }),
+    ),
+  );
+  const completed = findings.filter(
+    (finding): finding is string => finding !== null,
+  );
+
+  phase("Draft");
+  const sections = await pipeline(
+    completed,
+    (finding) => agent(`Draft a section:\n${finding}`),
+    (draft) => agent(`Edit for clarity:\n${draft}`),
+  );
+  const edited = sections.filter(
+    (section): section is string => section !== null,
+  );
+  log(`Completed ${edited.length} sections`);
+
+  return edited.join("\n\n");
+}
 ```
 
-See [`ClaudeAgent` in the API Reference](./docs/api.md#claudeagent) for
-sandbox, model, and structured-output options.
-
-Alternatively, install the bundled Skill for your Agents, then ask any Agent
+Alternatively, install the
+[bundled Skill](./skills/workflow-creator/) for your Agents, then ask any Agent
 that supports Agent Skills to create a Workflow:
 
 ```bash
@@ -125,13 +141,18 @@ skipped.
 ## Run a Workflow
 
 ```bash
-deer-workflow run ./workflow.ts --input '{"question":"Why has Neo Labs recently emerged as a new force in AI?"}'
+deer-workflow run ./workflow.ts \
+  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
 ```
+
+### Run in TUI Mode
 
 Interactive runs show `meta.phases` and rendered Markdown logs in a live
 two-pane TUI, together with the Workflow name, module path, working directory,
 and an animated highlight on the active phase. In the default mode, redirected
 stderr remains JSONL for automation.
+
+### Run in Event Streaming Mode
 
 Use `--print` / `-p` when running on servers or in automation such as CI/CD,
 task queues, process pipelines, and event collectors. It exposes a stable
@@ -139,7 +160,17 @@ stdout Event Stream with one JSON event per line:
 
 ```bash
 deer-workflow run ./workflow.ts --print \
-  --input '{"question":"Why has Neo Labs recently emerged as a new force in AI?"}'
+  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
+```
+
+## Other Agents / Harnesses
+
+The `agent()` helper and `create` command use the Codex harness by default.
+Claude Code is also included as a built-in harness. Select it for Workflow
+generation with:
+
+```bash
+deer-workflow create --agent claude "Describe the Workflow"
 ```
 
 ## Examples

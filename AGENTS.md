@@ -25,9 +25,10 @@ Do not copy private or proprietary implementations. Reproduce public behavior th
 - Keep Codex as the default CLI Agent runtime. Let the `create` command select
   Codex or Claude Code with `--agent codex|claude`. Document the option and its
   Codex default in top-level and `create` help.
-- Resolve the bundled Skill relative to the installed CLI module so `create`
-  works from a global GitHub or npm installation. Do not depend on the caller
-  having installed `workflow-creator` in a Codex Skill search directory.
+- Resolve the [bundled Skill](./skills/workflow-creator/) relative to the
+  installed CLI module so `create` works from a global GitHub or npm
+  installation. Do not depend on the caller having installed
+  `workflow-creator` in a Codex Skill search directory.
 - Run the create Agent with a read-only sandbox and allow Codex execution
   outside a Git repository. Strip one enclosing Markdown source fence before
   writing stdout so shell redirection produces a runnable source file. Before

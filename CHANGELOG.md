@@ -31,5 +31,6 @@
   including Agent adapters, Flow primitives, lifecycle events, logging, and the
   reusable Workflow Runner.
 - Added the `deer-workflow` CLI for running and generating Workflows, together
-  with the bundled Workflow Creator Skill, runnable examples, and bilingual
-  documentation.
+  with the
+  [bundled Workflow Creator Skill](./skills/workflow-creator/), runnable
+  examples, and bilingual documentation.

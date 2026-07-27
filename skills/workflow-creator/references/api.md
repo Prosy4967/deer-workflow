@@ -57,8 +57,8 @@ There is no global API injection. Caller input is the Handler's first
 parameter, conventionally named `args`; it is not a `globalThis` property.
 
 The CLI can ask the default Codex Agent, or Claude Code selected with
-`--agent claude`, to apply this bundled Skill and emit a new module as raw
-source:
+`--agent claude`, to apply this [bundled Skill](../) and emit a new module as
+raw source:
 
 ```sh
 deer-workflow create "Describe the Workflow" > workflow.ts
@@ -77,7 +77,7 @@ The shared terminal UI honors `NO_COLOR`, disables visual output for
 non-interactive or `TERM=dumb` destinations, and renders a failure state before
 the CLI reports an error.
 
-Install this bundled Skill for other Agents that support Agent Skills:
+Install this [bundled Skill](../) for other Agents that support Agent Skills:
 
 ```bash
 deer-workflow skill install
