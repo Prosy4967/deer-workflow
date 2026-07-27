@@ -212,6 +212,60 @@ Its message includes the official npm installation command, login and version
 checks, and explains that Codex CLI is installed separately from Codex
 Desktop.
 
+### `ClaudeAgent`
+
+```typescript
+class ClaudeAgent implements Agent {
+  constructor(config?: ClaudeAgentConfig);
+
+  run<TOutput = string>(
+    prompt: string,
+    options?: AgentOptions,
+  ): Promise<TOutput>;
+}
+```
+
+An alternative runtime backed by the non-interactive `claude --print`
+command. Prompts are sent over stdin, responses are parsed from
+`--output-format json`, and sessions are ephemeral by default via
+`--no-session-persistence`.
+
+```typescript
+import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
+
+const runtime = new ClaudeAgent({ model: "sonnet" });
+const result = await runtime.run("Inspect this repository.", {
+  sandbox: "read-only",
+});
+```
+
+```typescript
+interface ClaudeAgentConfig {
+  command?: string;
+  commandArgs?: string[];
+  cwd?: string;
+  model?: string;
+  sandbox?: AgentSandbox;
+  ephemeral?: boolean;
+  extraArgs?: string[];
+  env?: Record<string, string | undefined>;
+}
+```
+
+`AgentOptions.sandbox` maps onto Claude Code's permission controls:
+`"read-only"` uses `--permission-mode plan`, `"workspace-write"` uses
+`--permission-mode acceptEdits`, and `"danger-full-access"` uses
+`--dangerously-skip-permissions`. `AgentOptions.schema` is passed through
+`--json-schema`; the parsed `structured_output` field is preferred, falling
+back to parsing the `result` field as JSON.
+
+Failures and invalid schema-backed responses throw `ClaudeAgentError`, which
+retains `exitCode`, `stdout`, and `stderr` for diagnostics.
+
+When the configured executable cannot be resolved, `run()` throws
+`ClaudeCliNotFoundError` before starting a process. Its message includes the
+official npm installation command and login check.
+
 ## Flow
 
 ### `parallel()`

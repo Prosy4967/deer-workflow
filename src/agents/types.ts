@@ -141,3 +141,74 @@ export interface CodexAgentErrorDetails {
   stdout: string;
   stderr: string;
 }
+
+/**
+ * Construction options for {@link ClaudeAgent}.
+ */
+export interface ClaudeAgentConfig {
+  /** Claude Code executable name or absolute path. Defaults to `claude`. */
+  command?: string;
+
+  /** Arguments inserted between the executable and the `--print` flags. */
+  commandArgs?: string[];
+
+  /** Default working directory for Agent runs. */
+  cwd?: string;
+
+  /** Default Claude Code model identifier or alias (e.g. `sonnet`, `opus`). */
+  model?: string;
+
+  /** Default Claude Code sandbox policy. */
+  sandbox?: AgentSandbox;
+
+  /** Whether Claude Code should avoid persisting session files. Defaults to `true`. */
+  ephemeral?: boolean;
+
+  /** Additional raw arguments inserted before the prompt is sent over stdin. */
+  extraArgs?: string[];
+
+  /** Environment variables applied to every Claude Code process. */
+  env?: Record<string, string | undefined>;
+}
+
+/**
+ * Fully normalized Claude Code Agent configuration.
+ *
+ * @internal
+ */
+export interface ResolvedClaudeAgentConfig {
+  command: string;
+  commandArgs: string[];
+  cwd?: string;
+  model?: string;
+  sandbox?: AgentSandbox;
+  ephemeral: boolean;
+  extraArgs: string[];
+  env?: Record<string, string | undefined>;
+}
+
+/**
+ * Captured process details used to construct a {@link ClaudeAgentError}.
+ *
+ * @internal
+ */
+export interface ClaudeAgentErrorDetails {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}
+
+/**
+ * Shape of the JSON object Claude Code prints to stdout with
+ * `--output-format json`.
+ *
+ * @internal
+ */
+export interface ClaudeAgentResultMessage {
+  type: string;
+  subtype?: string;
+  is_error: boolean;
+  result?: string;
+  structured_output?: JsonValue;
+  session_id?: string;
+}

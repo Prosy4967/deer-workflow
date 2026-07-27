@@ -28,6 +28,7 @@ Agent Runtime。
   - [前置条件](#前置条件)
   - [安装命令行](#安装命令行)
   - [运行 Agent](#运行-agent)
+    - [改用 Claude Code CLI](#改用-claude-code-cli)
   - [创建 Workflow](#创建-workflow)
   - [运行 Workflow](#运行-workflow)
   - [示例](#示例)
@@ -74,6 +75,30 @@ deer-workflow --help
 ```bash
 deer-workflow agent "Inspect this repository"
 ```
+
+### 改用 Claude Code CLI
+
+`agent()` 辅助函数与 `deer-workflow agent` 命令默认使用 `CodexAgent`。如果想
+改用 [Claude Code CLI](https://docs.claude.com/en/docs/claude-code)，先安装并
+登录：
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude auth login
+claude --version
+```
+
+然后直接使用 `ClaudeAgent` 替代默认的 `agent`：
+
+```typescript
+import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
+
+const runtime = new ClaudeAgent({ model: "sonnet" });
+const result = await runtime.run("Inspect this repository.");
+```
+
+Sandbox、模型和结构化输出选项详见
+[API 参考中的 `ClaudeAgent`](./docs/api.zh-CN.md#claudeagent)。
 
 ## 创建 Workflow
 
@@ -170,8 +195,8 @@ bun run check
 
 ## 贡献 Agent 集成
 
-Codex CLI 是默认 Agent Runtime，但不是架构上的硬依赖。欢迎贡献其他 Coding
-Agent 集成。
+Codex CLI 是默认 Agent Runtime，但不是架构上的硬依赖。`ClaudeAgent`（Claude
+Code CLI）已作为内置的替代实现；也欢迎贡献其他 Coding Agent 集成。
 
 ## 许可证
 

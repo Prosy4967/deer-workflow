@@ -203,6 +203,58 @@ interface CodexAgentConfig {
 `CodexCliNotFoundError`。错误信息包含官方 npm 安装命令、登录和版本检查，并
 明确说明 Codex CLI 与 Codex Desktop 需要分别安装。
 
+### `ClaudeAgent`
+
+```typescript
+class ClaudeAgent implements Agent {
+  constructor(config?: ClaudeAgentConfig);
+
+  run<TOutput = string>(
+    prompt: string,
+    options?: AgentOptions,
+  ): Promise<TOutput>;
+}
+```
+
+基于非交互式 `claude --print` 命令的替代实现。Prompt 通过 stdin 发送，响应
+从 `--output-format json` 中解析，默认通过 `--no-session-persistence` 使用
+临时会话。
+
+```typescript
+import { ClaudeAgent } from "@deerwork-ai/deer-workflow/agents";
+
+const runtime = new ClaudeAgent({ model: "sonnet" });
+const result = await runtime.run("Inspect this repository.", {
+  sandbox: "read-only",
+});
+```
+
+```typescript
+interface ClaudeAgentConfig {
+  command?: string;
+  commandArgs?: string[];
+  cwd?: string;
+  model?: string;
+  sandbox?: AgentSandbox;
+  ephemeral?: boolean;
+  extraArgs?: string[];
+  env?: Record<string, string | undefined>;
+}
+```
+
+`AgentOptions.sandbox` 会映射到 Claude Code 的权限控制：`"read-only"` 使用
+`--permission-mode plan`，`"workspace-write"` 使用
+`--permission-mode acceptEdits`，`"danger-full-access"` 使用
+`--dangerously-skip-permissions`。`AgentOptions.schema` 通过 `--json-schema`
+传递；解析结果优先读取 `structured_output` 字段，否则回退为解析 `result`
+字段中的 JSON。
+
+运行失败或 Schema 响应无法解析时抛出 `ClaudeAgentError`，错误对象保留
+`exitCode`、`stdout` 和 `stderr`。
+
+无法解析配置的可执行文件时，`run()` 会在启动进程之前抛出
+`ClaudeCliNotFoundError`。错误信息包含官方 npm 安装命令和登录检查。
+
 ## Flow
 
 ### `parallel()`
